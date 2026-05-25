@@ -1,0 +1,115 @@
+/* ============================================================
+   SITE NAV INJECTION — tema1-osciladores.html
+   Self-contained: no dependency on main.css.
+   Uses only .site-nav and child selectors to avoid conflicts
+   with Tarea1's own stylesheet.
+============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap');
+
+/* Push body content below the fixed nav */
+body { padding-top: 64px; }
+
+/* ── Nav bar ── */
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  background: rgba(9, 0, 64, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.3s;
+}
+
+.site-nav-logo {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #ffffff;
+  text-decoration: none;
+  letter-spacing: -0.3px;
+}
+.site-nav-logo span { color: #00d527; }
+
+.site-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-nav-links a {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #e2e8f0;
+  text-decoration: none;
+  letter-spacing: 0.3px;
+  transition: color 0.2s;
+}
+.site-nav-links a:hover,
+.site-nav-links a.active { color: #00d527; }
+
+.site-nav-links .nav-ext {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.04);
+  transition: all 0.2s;
+}
+.site-nav-links .nav-ext:hover {
+  background: rgba(0, 213, 39, 0.10);
+  border-color: #00d527;
+  color: #00d527;
+}
+
+/* Breadcrumb below nav */
+.site-breadcrumb {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  z-index: 999;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  background: rgba(6, 9, 15, 0.75);
+  border-bottom: 1px solid rgba(31, 45, 66, 0.7);
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.72rem;
+  color: #4a5568;
+  gap: 6px;
+}
+.site-breadcrumb a {
+  color: #4a5568;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.site-breadcrumb a:hover { color: #00d527; }
+.site-breadcrumb .crumb-sep { color: #1f2d42; }
+.site-breadcrumb .crumb-current { color: #8892a4; }
+
+/* Offset the page content for both nav + breadcrumb */
+body { padding-top: 96px; }
+
+@media (max-width: 640px) {
+  .site-nav { padding: 0 16px; }
+  .site-nav-links { gap: 16px; }
+  .site-nav-links .nav-ext { display: none; }
+  .site-breadcrumb { padding: 0 16px; }
+  body { padding-top: 96px; }
+}

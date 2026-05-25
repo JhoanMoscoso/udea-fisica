@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Péndulo de Kapitza — Mecánica Teórica II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════════════════════
+   RESET & VARIABLES
+═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #06090f;
+  --bg2:     #0d1117;
+  --bg3:     #161b27;
+  --border:  #1f2d42;
+  --text:    #c9d1d9;
+  --dim:     #4a5568;
+  --cyan:    #58a6ff;
+  --green:   #3fb950;
+  --red:     #f85149;
+  --orange:  #e3b341;
+  --white:   #e6edf3;
+  --r:       8px;
+  --mono:    'JetBrains Mono', 'Courier New', monospace;
+  --title:   'Syne', sans-serif;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════════════════ */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px 14px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0a0f1e 0%, var(--bg) 100%);
+}
+
+h1 {
+  font-family: var(--title);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
+
+.subtitle {
+  color: var(--dim);
+  font-size: 10.5px;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
+
+.badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 0.5px;
+  transition: all 0.4s ease;
+}
+.badge.stable   { color: var(--green);  border-color: var(--green);  background: rgba(63,185,80,0.08); }
+.badge.unstable { color: var(--red);    border-color: var(--red);    background: rgba(248,81,73,0.08); }
+.badge.boundary { color: var(--orange); border-color: var(--orange); background: rgba(227,179,65,0.08); }
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT PRINCIPAL
+═══════════════════════════════════════════════════════════ */
+main {
+  display: grid;
+  grid-template-columns: 1fr 370px;
+  gap: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+}
+
+.canvas-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 16px;
+}
+
+.controls-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CANVAS WRAPPERS
+═══════════════════════════════════════════════════════════ */
+.canvas-wrap {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.canvas-label {
+  position: absolute;
+  top: 9px; left: 12px;
+  font-size: 9.5px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.canvas-overlay-br {
+  position: absolute;
+  bottom: 8px; right: 10px;
+  font-size: 9px;
+  color: var(--dim);
+  pointer-events: none;
+  z-index: 2;
+  text-align: right;
+  line-height: 1.8;
+}
+
+canvas { display: block; }
+
+/* ═══════════════════════════════════════════════════════════
+   PANEL (tarjeta de controles)
+═══════════════════════════════════════════════════════════ */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+}
+
+.panel-title {
+  font-size: 9.5px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SLIDERS
+═══════════════════════════════════════════════════════════ */
+.param-group { margin-bottom: 13px; }
+
+.param-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.param-name { color: var(--dim); font-size: 10.5px; }
+.param-sym  { color: var(--cyan); font-style: italic; font-size: 12px; margin-left: 4px; }
+.param-val  { color: var(--white); font-size: 11px; font-weight: 600; min-width: 78px; text-align: right; }
+
+input[type="range"] {
+  width: 100%; height: 3px;
+  -webkit-appearance: none; appearance: none;
+  background: var(--border);
+  border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--cyan); border: 2px solid var(--bg2);
+  cursor: pointer; transition: transform 0.1s;
+}
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+
+/* ═══════════════════════════════════════════════════════════
+   PRESETS
+═══════════════════════════════════════════════════════════ */
+.presets-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 14px 0 0;
+}
+
+.preset-btn {
+  padding: 7px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.preset-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ═══════════════════════════════════════════════════════════
+   CONDITION BOX
+═══════════════════════════════════════════════════════════ */
+.condition-box {
+  margin-top: 14px;
+  padding: 11px 13px;
+  background: var(--bg3);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.cond-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5px 0;
+  font-size: 11px;
+}
+.cond-label { color: var(--dim); font-size: 10.5px; }
+.cond-val   { color: var(--white); font-weight: 600; }
+
+.verdict-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 8px;
+  margin-top: 7px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: color 0.3s;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONTROL BUTTONS
+═══════════════════════════════════════════════════════════ */
+.btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+button {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+button:hover { border-color: var(--cyan); color: var(--cyan); }
+button.primary { border-color: var(--cyan); color: var(--cyan); background: rgba(88,166,255,0.06); }
+
+/* ═══════════════════════════════════════════════════════════
+   CÓDIGO FUENTE (toggle)
+═══════════════════════════════════════════════════════════ */
+.code-section {
+  max-width: 1120px;
+  margin: 18px auto 40px;
+  padding: 0 20px;
+}
+
+.code-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.code-toggle-btn:hover { border-color: var(--cyan); color: var(--text); }
+.code-icon { color: var(--cyan); font-size: 13px; }
+
+.code-container {
+  display: none;
+  margin-top: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px;
+  overflow: auto;
+  max-height: 650px;
+}
+.code-container.open { display: block; }
+
+pre {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--text);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #2a3548; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3b4d66; }
+</style>
+<!-- Site nav styles — loaded last so Tarea1 styles take priority -->
+<link rel="stylesheet" href="../../assets/css/tarea1-nav.css">
+</head>
+<body>
+
+<!-- ═══════════ SITE NAV ═══════════ -->
+<nav class="site-nav">
+  <a href="../../index.html" class="site-nav-logo">Jhoan <span>Moscoso</span></a>
+  <ul class="site-nav-links">
+    <li><a href="../../udea/index.html">UdeA</a></li>
+    <li><a href="../../proyectos/index.html">Proyectos</a></li>
+    <li>
+      <a href="https://github.com/ginkgo-dev" target="_blank" rel="noopener noreferrer" class="nav-ext">
+        GitHub ↗
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<!-- Breadcrumb -->
+<nav class="site-breadcrumb" aria-label="Navegación de migas de pan">
+  <a href="../../udea/index.html">UdeA</a>
+  <span class="crumb-sep" aria-hidden="true">›</span>
+  <a href="../../udea/index.html">Mecánica Teórica 2</a>
+  <span class="crumb-sep" aria-hidden="true">›</span>
+  <span class="crumb-current">Tema 1 — Osciladores</span>
+</nav>
+
+<!-- ═══════════════ HEADER ═══════════════ -->
+<header>
+  <div>
+    <h1>Péndulo de Kapitza</h1>
+    <p class="subtitle">Landau &amp; Lifshitz §5 · §27 · §30 &nbsp;·&nbsp; Mecánica Teórica II &nbsp;·&nbsp; Universidad de Antioquia</p>
+  </div>
+  <div id="regime-badge" class="badge unstable">⟳ Cargando...</div>
+</header>
+
+<!-- ═══════════════ MAIN LAYOUT ═══════════════ -->
+<main>
+
+  <!-- ── Columna izquierda: Canvases ── -->
+  <section class="canvas-col">
+
+    <!-- Canvas 1: Péndulo -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Péndulo — Animación en tiempo real</span>
+      <div class="canvas-overlay-br" id="live-vals">φ = — &nbsp;|&nbsp; φ̇ = —</div>
+      <canvas id="pendCanvas" width="680" height="360"></canvas>
+    </div>
+
+    <!-- Canvas 2: Espacio de fase -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Espacio de fase &nbsp;(φ, φ̇)</span>
+      <canvas id="phaseCanvas" width="680" height="255"></canvas>
+    </div>
+
+  </section>
+
+  <!-- ── Columna derecha: Controles + U_eff ── -->
+  <section class="controls-col">
+
+    <!-- Panel de parámetros -->
+    <div class="panel">
+      <div class="panel-title">Parámetros del sistema</div>
+
+      <!-- a -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">Amplitud soporte<span class="param-sym">a</span></span>
+          <span class="param-val" id="val-a">0.150 m</span>
+        </div>
+        <input type="range" id="sl-a" min="0.01" max="0.50" step="0.005" value="0.15">
+      </div>
+
+      <!-- gamma -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">Frecuencia forzante<span class="param-sym">γ</span></span>
+          <span class="param-val" id="val-g">20.0 rad/s</span>
+        </div>
+        <input type="range" id="sl-g" min="1" max="80" step="0.5" value="20">
+      </div>
+
+      <!-- l -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">Longitud péndulo<span class="param-sym">l</span></span>
+          <span class="param-val" id="val-l">0.500 m</span>
+        </div>
+        <input type="range" id="sl-l" min="0.10" max="1.00" step="0.05" value="0.5">
+      </div>
+
+      <!-- phi0 -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">Ángulo inicial<span class="param-sym">φ₀</span></span>
+          <span class="param-val" id="val-phi">π rad</span>
+        </div>
+        <input type="range" id="sl-phi" min="-3.14159" max="3.14159" step="0.02" value="3.10">
+      </div>
+
+      <!-- Presets -->
+      <div class="presets-grid">
+        <button class="preset-btn" onclick="setPreset('stable')">✓ Kapitza estable</button>
+        <button class="preset-btn" onclick="setPreset('unstable')">✗ Inestable</button>
+        <button class="preset-btn" onclick="setPreset('boundary')">~ En la frontera</button>
+        <button class="preset-btn" onclick="setPreset('down')">↓ Colgando (φ=0)</button>
+      </div>
+
+      <!-- Condición de Kapitza -->
+      <div class="condition-box">
+        <div class="cond-row">
+          <span class="cond-label">Forzante &nbsp;<em>aγ</em></span>
+          <span class="cond-val" id="val-ag">—</span>
+        </div>
+        <div class="cond-row">
+          <span class="cond-label">Umbral &nbsp;<em>√(2gl)</em></span>
+          <span class="cond-val" id="val-thr">—</span>
+        </div>
+        <div class="cond-row">
+          <span class="cond-label">ω₀ &nbsp;=&nbsp; √(g/l)</span>
+          <span class="cond-val" id="val-w0">—</span>
+        </div>
+        <div class="verdict-row" id="verdict-row">
+          <span id="verdict">—</span>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="btn-row">
+        <button id="btn-play" class="primary" onclick="togglePlay()">⏸ Pausar</button>
+        <button onclick="resetSim()">↺ Reiniciar</button>
+      </div>
+    </div>
+
+    <!-- Canvas 3: U_eff -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Potencial efectivo &nbsp;U<sub style="font-size:8px">eff</sub>(φ) — §30</span>
+      <canvas id="ueffCanvas" width="370" height="215"></canvas>
+    </div>
+
+  </section>
+</main>
+
+<!-- ═══════════════ CÓDIGO FUENTE ═══════════════ -->
+<div class="code-section">
+  <button class="code-toggle-btn" onclick="toggleCode()">
+    <span class="code-icon">&lt;/&gt;</span>
+    <span id="code-btn-label">Ver código fuente comentado</span>
+    <span style="margin-left:auto;font-size:9.5px;color:var(--dim);">HTML · CSS · JS · RK4 Physics</span>
+  </button>
+  <div class="code-container" id="code-container">
+    <pre id="code-display">// Haz clic en "Ver código fuente" para cargar...</pre>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT — FÍSICA + ANIMACIÓN
+═══════════════════════════════════════════════════════════════ -->
+<script>
+// ================================================================
+//  PÉNDULO DE KAPITZA — Simulación Numérica Interactiva
+//  Jhoan · Mecánica Teórica II · Universidad de Antioquia · 2026
+// ================================================================
+//
+//  FUNDAMENTO TEÓRICO  (Landau & Lifshitz, Mecánica):
+//
+//  ┌─────────────────────────────────────────────────────────────┐
+//  │  [§5 Prob. 3c]  Lagrangiano con soporte y = a·cos(γt):    │
+//  │                                                             │
+//  │  L = ½ml²φ̇² + mlaγ²cos(γt)cosφ + mgl cosφ              │
+//  │                                                             │
+//  │  Ecuación de movimiento COMPLETA (no linealizada):          │
+//  │                                                             │
+//  │  φ̈ = −[g/l + (aγ²/l)·cos(γt)] · sinφ         (Ec. 1)   │
+//  │                                                             │
+//  │  [§30 Prob. 1]  Potencial efectivo (campo rápido):         │
+//  │                                                             │
+//  │  U_eff = mgl[−cosφ + (a²γ²/4gl)·sin²φ]        (Ec. 2)   │
+//  │                                                             │
+//  │  Condición de Kapitza (φ=π es mínimo de U_eff):            │
+//  │                                                             │
+//  │  a·γ > √(2gl)                                  (Ec. 3)   │
+//  └─────────────────────────────────────────────────────────────┘
+//
+//  El integrador numérico es Runge-Kutta de 4to orden (RK4).
+//  Paso de tiempo dt = 0.0005 s, 30 pasos RK4 por frame.
+// ================================================================
+
+// ─────────────────────────────────────
+//  PARÁMETROS FÍSICOS (mutables)
+// ─────────────────────────────────────
+const P = {
+  g:     9.81,   // [m/s²]    gravedad
+  l:     0.50,   // [m]       longitud del péndulo
+  a:     0.15,   // [m]       amplitud de oscilación del soporte
+  gamma: 20.0,   // [rad/s]   frecuencia de la forzante
+  m:     1.0,    // [kg]      masa (cancela en la dinámica)
+};
+
+// ─────────────────────────────────────
+//  ESTADO DINÁMICO
+// ─────────────────────────────────────
+let phi  = Math.PI - 0.04;  // ángulo (rad)  — π ≡ posición invertida
+let dphi = 0.0;             // velocidad angular (rad/s)
+let t    = 0.0;             // tiempo simulado (s)
+
+// ─────────────────────────────────────
+//  CONTROL DE SIMULACIÓN
+// ─────────────────────────────────────
+let running = true;
+let animId  = null;
+
+// ─────────────────────────────────────
+//  HISTORIA PARA TRAZAS
+// ─────────────────────────────────────
+const MAX_TRAIL  = 180;    // puntos del rastro del bob
+const MAX_PHASE  = 5000;   // puntos del espacio de fase
+const trail      = [];     // [{x, y}]  posiciones canvas del bob
+const phaseHist  = [];     // [{phi, dphi}]
+
+// ================================================================
+//  FÍSICA — INTEGRADOR RK4
+// ================================================================
+
+const DT          = 0.0005;  // paso de tiempo [s]
+const STEPS_FRAME = 30;      // pasos RK4 por frame de animación
+
+/**
+ * derivadas(phi, dphi, t)
+ *
+ * Sistema de EDOs de primer orden derivado del Lagrangiano §5:
+ *   dy/dt = [dφ/dt, dφ̇/dt]
+ *
+ *   dφ/dt  = φ̇
+ *   dφ̇/dt = −[g/l + aγ²/l · cos(γt)] · sinφ       ← Ec. 1
+ *
+ * @returns {Array} [dφ/dt, dφ̇/dt]
+ */
+function derivadas(phi, dphi, t) {
+  const ddphi = -(P.g / P.l + (P.a * P.gamma * P.gamma / P.l) * Math.cos(P.gamma * t))
+                * Math.sin(phi);
+  return [dphi, ddphi];
+}
+
+/**
+ * rk4Step(phi, dphi, t)
+ *
+ * Un paso del integrador Runge-Kutta de 4to orden.
+ * Error de truncamiento local: O(h⁵).
+ *
+ *   k₁ = h · f(y, t)
+ *   k₂ = h · f(y + k₁/2, t + h/2)
+ *   k₃ = h · f(y + k₂/2, t + h/2)
+ *   k₄ = h · f(y + k₃, t + h)
+ *   y(t+h) ≈ y(t) + (k₁ + 2k₂ + 2k₃ + k₄) / 6
+ *
+ * @returns {Array} [phi_nuevo, dphi_nuevo]
+ */
+function rk4Step(phi, dphi, t) {
+  const h = DT;
+  const [k1, l1] = derivadas(phi,              dphi,              t        );
+  const [k2, l2] = derivadas(phi + 0.5*h*k1,  dphi + 0.5*h*l1,  t + 0.5*h);
+  const [k3, l3] = derivadas(phi + 0.5*h*k2,  dphi + 0.5*h*l2,  t + 0.5*h);
+  const [k4, l4] = derivadas(phi +     h*k3,  dphi +     h*l3,  t +     h );
+
+  return [
+    phi  + (h / 6) * (k1 + 2*k2 + 2*k3 + k4),
+    dphi + (h / 6) * (l1 + 2*l2 + 2*l3 + l4),
+  ];
+}
+
+/**
+ * Ueff(phi)
+ *
+ * Potencial efectivo de Landau §30 Prob. 1 (Ec. 2):
+ *   U_eff(φ) = mgl[−cosφ + (a²γ²/4gl)·sin²φ]
+ *
+ * Cuando aγ > √(2gl), U_eff tiene mínimos en φ = 0 Y φ = ±π.
+ * El segundo mínimo (φ=π) explica la estabilidad del péndulo invertido.
+ */
+function Ueff(phi) {
+  const alpha = (P.a * P.a * P.gamma * P.gamma) / (4.0 * P.g * P.l);
+  return P.m * P.g * P.l * (-Math.cos(phi) + alpha * Math.sin(phi) ** 2);
+}
+
+// ================================================================
+//  CONDICIÓN DE KAPITZA  (Ec. 3)
+// ================================================================
+
+/** isKapitzaStable(): verifica a·γ > √(2gl) */
+function isKapitzaStable() {
+  return (P.a * P.gamma) > Math.sqrt(2 * P.g * P.l);
+}
+
+/** nearBoundary(): margen relativo < 5% */
+function nearBoundary() {
+  const ag  = P.a * P.gamma;
+  const thr = Math.sqrt(2 * P.g * P.l);
+  return Math.abs(ag - thr) / thr < 0.05;
+}
+
+// ================================================================
+//  REFERENCIAS A CANVASES
+// ================================================================
+
+const pendCanvas  = document.getElementById('pendCanvas');
+const phaseCanvas = document.getElementById('phaseCanvas');
+const ueffCanvas  = document.getElementById('ueffCanvas');
+
+const ctxP = pendCanvas.getContext('2d');
+const ctxF = phaseCanvas.getContext('2d');
+const ctxU = ueffCanvas.getContext('2d');
+
+// ================================================================
+//  RENDER — CANVAS 1: PÉNDULO
+// ================================================================
+
+function drawPendulum() {
+  const W = pendCanvas.width;
+  const H = pendCanvas.height;
+  ctxP.clearRect(0, 0, W, H);
+
+  // Escala dinámica — el péndulo siempre cabe en el canvas
+  const maxReach = P.l + P.a;
+  const scale = Math.min((H * 0.44) / maxReach, 290);
+
+  // Centro del pivote en reposo (canvas coords)
+  const cx = W * 0.5;
+  const cy = H * 0.52;
+
+  // Posición actual del pivote (oscila verticalmente)
+  const pivotY = cy + P.a * scale * Math.cos(P.gamma * t);
+
+  // Posición del bob
+  const bobX = cx     + P.l * scale * Math.sin(phi);
+  const bobY = pivotY + P.l * scale * Math.cos(phi);
+
+  const stable = isKapitzaStable();
+  const near   = nearBoundary();
+  const color  = near ? '#e3b341' : (stable ? '#3fb950' : '#f85149');
+
+  // ── Grid de fondo ──
+  ctxP.strokeStyle = '#111a28';
+  ctxP.lineWidth = 0.5;
+  for (let x = 0; x < W; x += 50) {
+    ctxP.beginPath(); ctxP.moveTo(x, 0); ctxP.lineTo(x, H); ctxP.stroke();
+  }
+  for (let y = 0; y < H; y += 50) {
+    ctxP.beginPath(); ctxP.moveTo(0, y); ctxP.lineTo(W, y); ctxP.stroke();
+  }
+
+  // ── Líneas de referencia: vertical y horizontal ──
+  ctxP.setLineDash([5, 5]);
+  ctxP.strokeStyle = '#1e2d42';
+  ctxP.lineWidth = 1;
+  ctxP.beginPath(); ctxP.moveTo(cx, 10); ctxP.lineTo(cx, H - 10); ctxP.stroke();
+  ctxP.beginPath(); ctxP.moveTo(10, cy); ctxP.lineTo(W - 10, cy); ctxP.stroke();
+  ctxP.setLineDash([]);
+
+  // ── Marcador de posición invertida (φ=π) ──
+  const invY = cy - P.l * scale;
+  ctxP.fillStyle = color + '33';
+  ctxP.beginPath();
+  ctxP.arc(cx, invY, 10, 0, 2 * Math.PI);
+  ctxP.fill();
+  ctxP.strokeStyle = color + '55';
+  ctxP.lineWidth = 1;
+  ctxP.stroke();
+  ctxP.fillStyle = color + '66';
+  ctxP.font = '9px JetBrains Mono, monospace';
+  ctxP.fillText('φ = π', cx + 13, invY + 4);
+
+  // ── Rastro del bob ──
+  trail.push({ x: bobX, y: bobY });
+  if (trail.length > MAX_TRAIL) trail.shift();
+
+  if (trail.length > 1) {
+    for (let i = 1; i < trail.length; i++) {
+      const alpha = (i / trail.length);
+      ctxP.strokeStyle = stable
+        ? `rgba(63, 185, 80, ${alpha * 0.55})`
+        : `rgba(248, 81, 73, ${alpha * 0.45})`;
+      ctxP.lineWidth = 1.8;
+      ctxP.beginPath();
+      ctxP.moveTo(trail[i-1].x, trail[i-1].y);
+      ctxP.lineTo(trail[i].x, trail[i].y);
+      ctxP.stroke();
+    }
+  }
+
+  // ── Riel del soporte ──
+  const railH = P.a * scale * 1.4;
+  ctxP.strokeStyle = '#2a3a55';
+  ctxP.lineWidth = 4;
+  ctxP.lineCap = 'round';
+  ctxP.beginPath();
+  ctxP.moveTo(cx, cy - railH);
+  ctxP.lineTo(cx, cy + railH);
+  ctxP.stroke();
+
+  // ── Pivot (bloque deslizante) ──
+  const pw = 26, ph = 14;
+  ctxP.fillStyle = '#0f1d2e';
+  ctxP.strokeStyle = color;
+  ctxP.lineWidth = 1.5;
+  roundRectPath(ctxP, cx - pw/2, pivotY - ph/2, pw, ph, 4);
+  ctxP.fill(); ctxP.stroke();
+  // Flecha de oscilación
+  ctxP.fillStyle = color + '88';
+  ctxP.font = '8px monospace';
+  ctxP.fillText('↕', cx + pw/2 + 3, pivotY + 3);
+
+  // ── Varilla del péndulo ──
+  const rodGrad = ctxP.createLinearGradient(cx, pivotY, bobX, bobY);
+  rodGrad.addColorStop(0, '#3b5070');
+  rodGrad.addColorStop(1, color + '99');
+  ctxP.strokeStyle = rodGrad;
+  ctxP.lineWidth = 2;
+  ctxP.lineCap = 'round';
+  ctxP.beginPath();
+  ctxP.moveTo(cx, pivotY);
+  ctxP.lineTo(bobX, bobY);
+  ctxP.stroke();
+
+  // ── Bob ──
+  const R = 13;
+  const gBob = ctxP.createRadialGradient(bobX - 3, bobY - 3, 1, bobX, bobY, R);
+  gBob.addColorStop(0, stable ? '#7eeaa0' : '#ff9b95');
+  gBob.addColorStop(1, stable ? '#1a4d2a' : '#5a1010');
+  ctxP.beginPath();
+  ctxP.arc(bobX, bobY, R, 0, 2 * Math.PI);
+  ctxP.fillStyle = gBob;
+  ctxP.fill();
+  ctxP.strokeStyle = color;
+  ctxP.lineWidth = 2;
+  ctxP.stroke();
+
+  // ── Línea de ángulo visual ──
+  ctxP.strokeStyle = color + '44';
+  ctxP.lineWidth = 1;
+  ctxP.setLineDash([3, 4]);
+  ctxP.beginPath();
+  ctxP.moveTo(cx, pivotY);
+  ctxP.lineTo(cx, pivotY + P.l * scale * 0.5);
+  ctxP.stroke();
+  ctxP.setLineDash([]);
+}
+
+// ================================================================
+//  RENDER — CANVAS 2: ESPACIO DE FASE
+// ================================================================
+
+function drawPhaseSpace() {
+  const W = phaseCanvas.width;
+  const H = phaseCanvas.height;
+  ctxF.clearRect(0, 0, W, H);
+
+  ctxF.fillStyle = '#0a0e16';
+  ctxF.fillRect(0, 0, W, H);
+
+  const stable = isKapitzaStable();
+
+  // Rango del espacio de fase
+  const phiMin = -Math.PI, phiMax = Math.PI;
+  let dphiRange = Math.max(15, Math.abs(dphi) * 1.6);
+  if (phaseHist.length > 0) {
+    const maxDP = phaseHist.reduce((m, p) => Math.max(m, Math.abs(p.dphi)), 0);
+    dphiRange = Math.max(dphiRange, maxDP * 1.2);
+  }
+  const dphiMin = -dphiRange, dphiMax = dphiRange;
+
+  const pad = { t: 20, b: 26, l: 44, r: 14 };
+  const toX = v  => pad.l + (v - phiMin)  / (phiMax  - phiMin)  * (W - pad.l - pad.r);
+  const toY = v  => pad.t + (1 - (v - dphiMin) / (dphiMax - dphiMin)) * (H - pad.t - pad.b);
+
+  // ── Grid y ejes ──
+  ctxF.strokeStyle = '#171f30';
+  ctxF.lineWidth = 1;
+  // Líneas horizontales
+  [-dphiRange*0.5, 0, dphiRange*0.5].forEach(v => {
+    ctxF.beginPath();
+    ctxF.moveTo(pad.l, toY(v)); ctxF.lineTo(W - pad.r, toY(v));
+    ctxF.stroke();
+  });
+  // Líneas verticales en -π, -π/2, 0, π/2, π
+  [-Math.PI, -Math.PI/2, 0, Math.PI/2, Math.PI].forEach(v => {
+    ctxF.beginPath();
+    ctxF.moveTo(toX(v), pad.t); ctxF.lineTo(toX(v), H - pad.b);
+    ctxF.stroke();
+  });
+
+  // Ejes principales más brillantes
+  ctxF.strokeStyle = '#263347';
+  ctxF.lineWidth = 1.2;
+  ctxF.beginPath(); ctxF.moveTo(toX(0), pad.t); ctxF.lineTo(toX(0), H-pad.b); ctxF.stroke();
+  ctxF.beginPath(); ctxF.moveTo(pad.l, toY(0)); ctxF.lineTo(W-pad.r, toY(0)); ctxF.stroke();
+
+  // ── Etiquetas eje X (φ) ──
+  ctxF.fillStyle = '#3b4d66';
+  ctxF.font = '9px JetBrains Mono, monospace';
+  ctxF.textAlign = 'center';
+  [[-Math.PI,'−π'], [-Math.PI/2,'−π/2'], [0,'0'], [Math.PI/2,'π/2'], [Math.PI,'π']].forEach(([v, lbl]) => {
+    ctxF.fillText(lbl, toX(v), H - 6);
+  });
+  ctxF.textAlign = 'left';
+  ctxF.fillText('φ', W - pad.r - 8, H - 6);
+
+  // Etiqueta eje Y
+  ctxF.save();
+  ctxF.translate(12, H / 2);
+  ctxF.rotate(-Math.PI / 2);
+  ctxF.textAlign = 'center';
+  ctxF.fillText('φ̇ (rad/s)', 0, 0);
+  ctxF.restore();
+
+  // Valor máx eje Y
+  ctxF.textAlign = 'right';
+  ctxF.fillText(dphiRange.toFixed(1), pad.l - 3, pad.t + 10);
+  ctxF.fillText((-dphiRange).toFixed(1), pad.l - 3, H - pad.b);
+  ctxF.textAlign = 'left';
+
+  // ── Puntos del espacio de fase ──
+  const n = phaseHist.length;
+  for (let i = 0; i < n; i++) {
+    const { phi: p, dphi: dp } = phaseHist[i];
+    const wrapped = wrapAngle(p);
+    const px = toX(wrapped);
+    const py = toY(dp);
+    if (px < pad.l || px > W - pad.r || py < pad.t || py > H - pad.b) continue;
+
+    const age   = i / n;
+    const alpha = 0.25 + 0.75 * age;
+
+    if (stable) {
+      ctxF.fillStyle = `rgba(63,185,80,${alpha})`;
+    } else {
+      ctxF.fillStyle = `rgba(248,${Math.round(81+100*(1-age))},73,${alpha})`;
+    }
+    ctxF.beginPath();
+    ctxF.arc(px, py, 1.2, 0, 2 * Math.PI);
+    ctxF.fill();
+  }
+
+  // ── Punto actual ──
+  const curX = toX(wrapAngle(phi));
+  const curY = toY(dphi);
+  if (curX >= pad.l && curX <= W-pad.r && curY >= pad.t && curY <= H-pad.b) {
+    // Halo
+    ctxF.beginPath();
+    ctxF.arc(curX, curY, 7, 0, 2 * Math.PI);
+    ctxF.fillStyle = 'rgba(88,166,255,0.15)';
+    ctxF.fill();
+    // Punto
+    ctxF.beginPath();
+    ctxF.arc(curX, curY, 3.5, 0, 2 * Math.PI);
+    ctxF.fillStyle = '#58a6ff';
+    ctxF.fill();
+    ctxF.strokeStyle = '#ffffff55';
+    ctxF.lineWidth = 1;
+    ctxF.stroke();
+  }
+}
+
+// ================================================================
+//  RENDER — CANVAS 3: POTENCIAL EFECTIVO
+// ================================================================
+
+function drawUeff() {
+  const W = ueffCanvas.width;
+  const H = ueffCanvas.height;
+  ctxU.clearRect(0, 0, W, H);
+
+  ctxU.fillStyle = '#0a0e16';
+  ctxU.fillRect(0, 0, W, H);
+
+  const stable = isKapitzaStable();
+  const N = 300;
+  const phis = Array.from({ length: N }, (_, i) => -Math.PI + 2 * Math.PI * i / (N-1));
+  const Us   = phis.map(Ueff);
+  const Umin = Math.min(...Us);
+  const Umax = Math.max(...Us);
+  const Urng = Umax - Umin || 1;
+
+  const pad = { t: 24, b: 26, l: 8, r: 8 };
+  const toX = v => pad.l + (v + Math.PI) / (2 * Math.PI) * (W - pad.l - pad.r);
+  const toY = u => pad.t + (1 - (u - Umin) / Urng) * (H - pad.t - pad.b);
+
+  const color = stable ? '#3fb950' : '#f85149';
+
+  // ── U_eff relleno ──
+  ctxU.beginPath();
+  phis.forEach((p, i) => {
+    const x = toX(p), y = toY(Us[i]);
+    i === 0 ? ctxU.moveTo(x, y) : ctxU.lineTo(x, y);
+  });
+  ctxU.lineTo(toX(Math.PI),  H - pad.b);
+  ctxU.lineTo(toX(-Math.PI), H - pad.b);
+  ctxU.closePath();
+  ctxU.fillStyle = color + '15';
+  ctxU.fill();
+
+  // ── U_eff curva ──
+  const gLine = ctxU.createLinearGradient(0, pad.t, 0, H - pad.b);
+  gLine.addColorStop(0, color + 'ff');
+  gLine.addColorStop(1, color + '66');
+  ctxU.strokeStyle = gLine;
+  ctxU.lineWidth = 2;
+  ctxU.beginPath();
+  phis.forEach((p, i) => {
+    const x = toX(p), y = toY(Us[i]);
+    i === 0 ? ctxU.moveTo(x, y) : ctxU.lineTo(x, y);
+  });
+  ctxU.stroke();
+
+  // ── Línea U=0 ──
+  if (Umin < 0 && Umax > 0) {
+    ctxU.strokeStyle = '#263347';
+    ctxU.lineWidth = 1;
+    ctxU.setLineDash([4, 4]);
+    ctxU.beginPath();
+    ctxU.moveTo(pad.l, toY(0)); ctxU.lineTo(W - pad.r, toY(0));
+    ctxU.stroke();
+    ctxU.setLineDash([]);
+  }
+
+  // ── Mínimos (equilibrios estables) ──
+  // φ = 0 siempre estable
+  ctxU.beginPath();
+  ctxU.arc(toX(0), toY(Ueff(0)), 4.5, 0, 2*Math.PI);
+  ctxU.fillStyle = '#3fb950';
+  ctxU.fill();
+
+  // φ = ±π estable solo si condición Kapitza
+  if (stable) {
+    [Math.PI, -Math.PI].forEach(v => {
+      ctxU.beginPath();
+      ctxU.arc(toX(v), toY(Ueff(v)), 4.5, 0, 2*Math.PI);
+      ctxU.fillStyle = '#3fb950';
+      ctxU.fill();
+    });
+  } else {
+    // φ = ±π es máximo (inestable)
+    ctxU.beginPath();
+    ctxU.arc(toX(Math.PI), toY(Ueff(Math.PI)), 4.5, 0, 2*Math.PI);
+    ctxU.fillStyle = '#f85149';
+    ctxU.fill();
+  }
+
+  // ── Punto actual en U_eff ──
+  const phiW = wrapAngle(phi);
+  const uNow = Ueff(phiW);
+  ctxU.beginPath();
+  ctxU.arc(toX(phiW), toY(uNow), 5, 0, 2*Math.PI);
+  ctxU.fillStyle = '#58a6ff';
+  ctxU.fill();
+  ctxU.strokeStyle = '#ffffff66';
+  ctxU.lineWidth = 1.5;
+  ctxU.stroke();
+
+  // ── Etiquetas eje X ──
+  ctxU.fillStyle = '#3b4d66';
+  ctxU.font = '9px JetBrains Mono, monospace';
+  ctxU.textAlign = 'center';
+  [[-Math.PI,'−π'], [0,'0'], [Math.PI,'π']].forEach(([v, l]) => {
+    ctxU.fillText(l, toX(v), H - 7);
+  });
+  ctxU.textAlign = 'left';
+
+  // Leyendas de equilibrios
+  ctxU.fillStyle = '#3fb950';
+  ctxU.font = '8.5px JetBrains Mono, monospace';
+  ctxU.fillText('● estable', 10, 14);
+  if (!stable) {
+    ctxU.fillStyle = '#f85149';
+    ctxU.fillText('● inestable', 10, 25);
+  }
+}
+
+// ================================================================
+//  HELPERS
+// ================================================================
+
+/** wrapAngle: mapea φ al intervalo [−π, π] */
+function wrapAngle(a) {
+  return ((a + Math.PI) % (2 * Math.PI)) - Math.PI;
+}
+
+/** roundRectPath: path de rectángulo redondeado (compatible con todos los browsers) */
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+// ================================================================
+//  ACTUALIZAR DISPLAYS DE CONDICIÓN
+// ================================================================
+
+function updateConditions() {
+  const ag  = P.a * P.gamma;
+  const thr = Math.sqrt(2 * P.g * P.l);
+  const w0  = Math.sqrt(P.g / P.l);
+  const stable = ag > thr;
+  const near   = Math.abs(ag - thr) / thr < 0.05;
+
+  document.getElementById('val-ag').textContent  = ag.toFixed(4);
+  document.getElementById('val-thr').textContent = thr.toFixed(4);
+  document.getElementById('val-w0').textContent  = w0.toFixed(4) + ' rad/s';
+
+  const verdict    = document.getElementById('verdict');
+  const vRow       = document.getElementById('verdict-row');
+  const badge      = document.getElementById('regime-badge');
+
+  if (near) {
+    verdict.textContent = '⚠ aγ ≈ √(2gl) — FRONTERA';
+    verdict.style.color = 'var(--orange)';
+    vRow.style.borderTopColor = 'var(--orange)';
+    badge.textContent = '≈ En la frontera';
+    badge.className = 'badge boundary';
+  } else if (stable) {
+    verdict.textContent = 'aγ > √(2gl) — φ = π ESTABLE  ✓';
+    verdict.style.color = 'var(--green)';
+    vRow.style.borderTopColor = 'var(--green)';
+    badge.textContent = '✓ Kapitza estable';
+    badge.className = 'badge stable';
+  } else {
+    verdict.textContent = 'aγ < √(2gl) — φ = π INESTABLE  ✗';
+    verdict.style.color = 'var(--red)';
+    vRow.style.borderTopColor = 'var(--red)';
+    badge.textContent = '✗ Inestable';
+    badge.className = 'badge unstable';
+  }
+
+  // Valores en vivo
+  const phiDeg = (phi * 180 / Math.PI).toFixed(1);
+  document.getElementById('live-vals').textContent =
+    `φ = ${phiDeg}° | φ̇ = ${dphi.toFixed(2)} rad/s | t = ${t.toFixed(2)} s`;
+}
+
+// ================================================================
+//  BUCLE DE ANIMACIÓN
+// ================================================================
+
+function step() {
+  if (!running) return;
+
+  // Avanzar la física STEPS_FRAME pasos por frame
+  for (let i = 0; i < STEPS_FRAME; i++) {
+    [phi, dphi] = rk4Step(phi, dphi, t);
+    t += DT;
+
+    // Guardar en historia del espacio de fase (cada 4 pasos)
+    if (i % 4 === 0) {
+      phaseHist.push({ phi, dphi });
+      if (phaseHist.length > MAX_PHASE) phaseHist.shift();
+    }
+  }
+
+  // Renderizar
+  drawPendulum();
+  drawPhaseSpace();
+  drawUeff();
+
+  // Actualizar displays
+  updateConditions();
+
+  animId = requestAnimationFrame(step);
+}
+
+// ================================================================
+//  SLIDERS
+// ================================================================
+
+function setupSliders() {
+  // Amplitud a
+  document.getElementById('sl-a').addEventListener('input', function() {
+    P.a = parseFloat(this.value);
+    document.getElementById('val-a').textContent = P.a.toFixed(3) + ' m';
+    clearHistory();
+    updateConditions();
+  });
+  // Gamma
+  document.getElementById('sl-g').addEventListener('input', function() {
+    P.gamma = parseFloat(this.value);
+    document.getElementById('val-g').textContent = P.gamma.toFixed(1) + ' rad/s';
+    clearHistory();
+    updateConditions();
+  });
+  // Longitud l
+  document.getElementById('sl-l').addEventListener('input', function() {
+    P.l = parseFloat(this.value);
+    document.getElementById('val-l').textContent = P.l.toFixed(3) + ' m';
+    clearHistory();
+    updateConditions();
+  });
+  // Ángulo inicial phi0
+  document.getElementById('sl-phi').addEventListener('input', function() {
+    phi = parseFloat(this.value);
+    dphi = 0.0;
+    t = 0.0;
+    clearHistory();
+    const frac = phi / Math.PI;
+    let label;
+    if (Math.abs(frac - 1) < 0.02)       label = 'π rad';
+    else if (Math.abs(frac + 1) < 0.02)  label = '−π rad';
+    else if (Math.abs(frac) < 0.02)      label = '0 rad';
+    else                                   label = frac.toFixed(2) + 'π rad';
+    document.getElementById('val-phi').textContent = label;
+  });
+}
+
+function clearHistory() {
+  trail.length = 0;
+  phaseHist.length = 0;
+}
+
+// ================================================================
+//  CONTROLES
+// ================================================================
+
+function togglePlay() {
+  running = !running;
+  const btn = document.getElementById('btn-play');
+  if (running) {
+    btn.textContent = '⏸ Pausar';
+    btn.className = 'primary';
+    animId = requestAnimationFrame(step);
+  } else {
+    btn.textContent = '▶ Reanudar';
+    btn.className = '';
+    cancelAnimationFrame(animId);
+  }
+}
+
+function resetSim() {
+  phi  = parseFloat(document.getElementById('sl-phi').value);
+  dphi = 0.0;
+  t    = 0.0;
+  clearHistory();
+}
+
+/**
+ * setPreset(name) — carga configuraciones de referencia
+ *
+ * Cada preset corresponde a una región física distinta:
+ *   'stable'   → condición Kapitza satisfecha con margen
+ *   'unstable' → aγ < √(2gl), el péndulo cae
+ *   'boundary' → aγ ≈ √(2gl), comportamiento marginal
+ *   'down'     → péndulo colgando, siempre estable
+ */
+function setPreset(name) {
+  const presets = {
+    //       a      γ     l     φ₀
+    stable:   { a: 0.15, g: 20,  l: 0.50, phi: Math.PI - 0.04 },
+    unstable: { a: 0.05, g: 10,  l: 0.50, phi: Math.PI - 0.04 },
+    boundary: { a: 0.10, g: 14,  l: 0.50, phi: Math.PI - 0.04 },
+    down:     { a: 0.12, g: 20,  l: 0.50, phi: 0.2             },
+  };
+
+  const pr = presets[name];
+  if (!pr) return;
+
+  P.a = pr.a; P.gamma = pr.g; P.l = pr.l;
+  phi = pr.phi; dphi = 0.0; t = 0.0;
+  clearHistory();
+
+  // Sincronizar sliders y etiquetas
+  document.getElementById('sl-a').value   = P.a;
+  document.getElementById('sl-g').value   = P.gamma;
+  document.getElementById('sl-l').value   = P.l;
+  document.getElementById('sl-phi').value = phi;
+
+  document.getElementById('val-a').textContent = P.a.toFixed(3) + ' m';
+  document.getElementById('val-g').textContent = P.gamma.toFixed(1) + ' rad/s';
+  document.getElementById('val-l').textContent = P.l.toFixed(3) + ' m';
+  document.getElementById('val-phi').textContent = Math.abs(phi - Math.PI) < 0.1 ? 'π rad' : phi.toFixed(2) + ' rad';
+
+  updateConditions();
+}
+
+// ================================================================
+//  CÓDIGO FUENTE TOGGLE
+// ================================================================
+
+let codeLoaded = false;
+
+function toggleCode() {
+  const container = document.getElementById('code-container');
+  const label     = document.getElementById('code-btn-label');
+  const isOpen    = container.classList.toggle('open');
+
+  label.textContent = isOpen ? 'Ocultar código fuente' : 'Ver código fuente comentado';
+
+  if (isOpen && !codeLoaded) {
+    // Muestra el HTML completo de la página — el código es la página misma
+    document.getElementById('code-display').textContent = document.documentElement.outerHTML;
+    codeLoaded = true;
+  }
+}
+
+// ================================================================
+//  INICIALIZACIÓN
+// ================================================================
+
+setupSliders();
+setPreset('stable');   // Preset por defecto: condición Kapitza cumplida
+updateConditions();
+step();                // Arrancar la animación
+
+</script>
+<script src="../../assets/js/nav.js"></script>
+</body>
+</html>
