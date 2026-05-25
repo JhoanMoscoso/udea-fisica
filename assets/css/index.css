@@ -40,11 +40,12 @@
   background: radial-gradient(circle, rgba(71,19,150,.35) 0%, transparent 65%);
   pointer-events: none;
   animation: orbPulse 6s ease-in-out infinite alternate;
+  transition: transform 0.15s ease-out;
 }
 
 @keyframes orbPulse {
-  0%   { opacity: .6; transform: scale(1); }
-  100% { opacity: 1;  transform: scale(1.08); }
+  0%   { opacity: .6; }
+  100% { opacity: 1; }
 }
 
 /* Secondary green accent glow */
@@ -54,8 +55,9 @@
   right: 5%;
   width: 300px;
   height: 300px;
-  background: radial-gradient(circle, rgba(0,213,39,.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(104,255,0,.08) 0%, transparent 70%);
   pointer-events: none;
+  transition: transform 0.15s ease-out;
 }
 
 .hero-content {
@@ -85,7 +87,7 @@
 
 .hero-name {
   font-family: var(--font-primary);
-  font-weight: 800;
+  font-weight: 700;
   font-size: clamp(3.5rem, 8vw, 6.5rem);
   color: var(--white);
   line-height: 1.00;
@@ -93,14 +95,14 @@
   margin-bottom: var(--space-m);
 }
 .hero-name .name-accent {
-  background: linear-gradient(135deg, var(--lime-green) 0%, #00e83a 100%);
+  background: linear-gradient(135deg, var(--lime-green) 0%, #80ff20 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .hero-title {
-  font-family: var(--font-primary);
+  font-family: var(--font-body);
   font-size: clamp(1rem, 2.2vw, 1.3rem);
   color: var(--dim);
   font-weight: 400;
@@ -345,7 +347,7 @@
   height: 9px;
   background: var(--lime-green);
   border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(0,213,39,.20), 0 0 12px rgba(0,213,39,.30);
+  box-shadow: 0 0 0 3px rgba(104,255,0,.20), 0 0 12px rgba(104,255,0,.30);
 }
 
 .timeline-period {

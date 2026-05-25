@@ -20,8 +20,8 @@ To maintain a modern, immersive, and high-impact aesthetic, a palette with sharp
 
 ### Accent and State Colors
 * **Lime Green (Primary Action / Success)**
-    * **HEX:** `#00d527`
-    * **HSL:** `hsla(131, 100%, 42%, 1)`
+    * **HEX:** `#68ff00`
+    * **HSL:** `hsla(96, 100%, 50%, 1)`
     * **Usage:** Primary Call to Action (CTA) buttons, "active" state indicators, success messages, and high-priority highlights.
 * **Bright Amber (Alerts / Notifications)**
     * **HEX:** `#ffcc00`
@@ -32,14 +32,17 @@ To maintain a modern, immersive, and high-impact aesthetic, a palette with sharp
 
 ## 2. Typography
 
-The typographic pairing seeks a balance between the reading fluidity of a modern interface and the rigorous precision required for data presentation.
+A three-font system that separates display, body, and monospace concerns for maximum clarity and editorial character.
 
-* **Primary Font: Nunito (Weight: 400)**
-    * **Scope:** Headings (`<h1>` to `<h6>`), paragraph text, navigation menus, form labels, and general body text.
-    * **Purpose:** Provides rounded and clean shapes that soften the interface, conveying a friendly, clear, and readable tone.
-* **Secondary Font: Fira Code (Weight: 400)**
-    * **Scope:** Numerical data, statistical tables, identifiers (IDs), configuration snippets, system metrics, and elements requiring monospaced alignment.
-    * **Purpose:** Ensures that characters share the exact same horizontal width, facilitating quick visual scanning of structured data.
+* **Display Font: Playfair Display (Weight: 500–700) — `--font-primary`**
+    * **Scope:** Headings only — `<h1>` to `<h3>`, hero names, section titles, page titles, and the nav brand logo.
+    * **Purpose:** High-contrast editorial serif with strong vertical rhythm. Use weight 600 for section titles and 700 for the hero name. Do NOT use for body copy, nav links, or buttons.
+* **Body Font: Work Sans (Weight: 400–600) — `--font-body`**
+    * **Scope:** All body text — paragraphs, nav links, buttons, badges, labels, captions, form inputs, timeline descriptions, and any running text that is not a heading.
+    * **Purpose:** A clean geometric sans-serif optimized for screen readability. Provides contrast to Playfair Display without competing for attention.
+* **Mono Font: Fira Code (Weight: 400–500) — `--font-mono`**
+    * **Scope:** Code blocks, technical labels, section eyebrow labels, timestamps, tech stack tags, and any element requiring monospaced alignment.
+    * **Purpose:** Ensures characters share exact horizontal width, facilitating quick visual scanning of structured or technical data.
 
 ---
 
@@ -87,9 +90,9 @@ To ensure mathematical harmony and visual consistency in paddings and margins, a
 ## 6. Interaction States (Components)
 
 ### Primary Button (Base: Lime Green)
-* **Normal:** `background-color: #00d527; color: #090040; font-family: 'Nunito', sans-serif; font-weight: bold;` *(Uses dark background text for accessible contrast)*.
-* **Hover:** `background-color: #00b320;` *(Subtle darkening of the green)* + `cursor: pointer;`.
-* **Active:** `background-color: #00911a; transform: scale(0.98);` *(Physical pressure feedback)*.
+* **Normal:** `background-color: #68ff00; color: #090040; font-family: 'Work Sans', sans-serif; font-weight: bold;` *(Uses dark background text for accessible contrast)*.
+* **Hover:** `background-color: #55cc00;` *(Subtle darkening of the green)* + `cursor: pointer;`.
+* **Active:** `background-color: #449900; transform: scale(0.98);` *(Physical pressure feedback)*.
 * **Focus:** `outline: 2px solid #ffffff; outline-offset: 2px;` *(Keyboard navigation guarantee)*.
 * **Disabled:** `background-color: #00d527; opacity: 0.4; cursor: not-allowed;`.
 
@@ -114,7 +117,7 @@ On dark backgrounds like `Deep Twilight`, shadows must be denser and darker to b
 ## 8. Iconography
 
 * **Required Style:** **Solid (Filled)**.
-* **Golden Rule:** All icons integrated into the interface (e.g., FontAwesome Solid, Lucide Filled, or Bootstrap Icons Filled) must exclusively use their solid variant. This ensures a strong visual weight that matches the rounded anatomy of *Nunito* and prevents the visual fatigue caused by mixing thin outline styles with compact dark elements.
+* **Golden Rule:** All icons integrated into the interface (e.g., FontAwesome Solid, Lucide Filled, or Bootstrap Icons Filled) must exclusively use their solid variant. This ensures strong visual weight consistent with the editorial tone of *Playfair Display* headings and prevents the visual fatigue caused by mixing thin outline styles with compact dark elements.
 * **Standard Size:** `16px` for buttons/text lines; `24px` for card headers or descriptive blocks.
 
 ---
