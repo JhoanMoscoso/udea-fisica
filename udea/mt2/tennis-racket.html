@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teorema del Eje Intermedio — Mecánica Teórica II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../assets/css/sim-tennis.css">
+</head>
+<body>
+
+<!-- ════════════════ HEADER ════════════════ -->
+<header>
+  <div>
+    <h1>Teorema del Eje Intermedio — Raqueta de Tenis</h1>
+    <p class="subtitle">
+      Landau §37 · Ecuaciones de Euler · Funciones Elípticas de Jacobi · Mecánica Teórica II · U de A
+    </p>
+  </div>
+  <div id="regime-badge" class="badge unstable">⟳ Calculando...</div>
+</header>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<main>
+
+  <!-- ── Columna izquierda: Canvases ── -->
+  <section class="canvas-col">
+
+    <!-- Canvas 1: Cuerpo 3D -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Cuerpo rígido — Rotación libre (sin torques)</span>
+      <div class="canvas-overlay-br" id="live-vals">t = 0.000 s</div>
+      <canvas id="bodyCanvas" width="680" height="360"></canvas>
+    </div>
+
+    <!-- Canvas 2: Ω(t) -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Velocidad angular Ω(t) en el sistema del cuerpo</span>
+      <canvas id="omegaCanvas" width="680" height="255"></canvas>
+    </div>
+
+  </section>
+
+  <!-- ── Columna derecha: Controles + Polhodia ── -->
+  <section class="controls-col">
+
+    <div class="panel">
+      <div class="panel-title">Momentos de inercia principales</div>
+
+      <!-- I₁ -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name" style="color:var(--ax1)">I₁ &nbsp;<span style="color:var(--dim);font-size:10px">(mín, estable)</span></span>
+          <span class="param-val" id="val-I1">1.00</span>
+        </div>
+        <input type="range" class="sl-ax1" id="sl-I1" min="0.2" max="3.0" step="0.1" value="1.0">
+      </div>
+
+      <!-- I₂ -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name" style="color:var(--ax2)">I₂ &nbsp;<span style="color:var(--dim);font-size:10px">(inter, INESTABLE)</span></span>
+          <span class="param-val" id="val-I2">2.00</span>
+        </div>
+        <input type="range" class="sl-ax2" id="sl-I2" min="0.2" max="3.0" step="0.1" value="2.0">
+      </div>
+
+      <!-- I₃ -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name" style="color:var(--ax3)">I₃ &nbsp;<span style="color:var(--dim);font-size:10px">(máx, estable)</span></span>
+          <span class="param-val" id="val-I3">3.00</span>
+        </div>
+        <input type="range" class="sl-ax3" id="sl-I3" min="0.2" max="5.0" step="0.1" value="3.0">
+      </div>
+
+      <!-- Presets -->
+      <div class="presets-grid">
+        <button class="preset-btn" onclick="setPreset('tennis')">🎾 Raqueta de tenis</button>
+        <button class="preset-btn" onclick="setPreset('sep')">⚡ Separatriz k→1</button>
+        <button class="preset-btn" onclick="setPreset('stable1')">✓ Estable (eje 1)</button>
+        <button class="preset-btn" onclick="setPreset('stable3')">✓ Estable (eje 3)</button>
+      </div>
+
+      <!-- k², Período, Conservación -->
+      <div class="condition-box">
+        <div class="cond-row">
+          <span class="cond-label">k² (Landau 37.9)</span>
+          <span class="cond-val" id="val-k2">—</span>
+        </div>
+        <div class="cond-row">
+          <span class="cond-label">Período T (aprox)</span>
+          <span class="cond-val" id="val-T">—</span>
+        </div>
+        <div class="cond-row">
+          <span class="cond-label">|ΔE/E₀|</span>
+          <span class="cond-val" id="val-dE">—</span>
+        </div>
+        <div class="cond-row">
+          <span class="cond-label">|ΔM²/M₀²|</span>
+          <span class="cond-val" id="val-dM">—</span>
+        </div>
+        <div class="verdict-row" id="verdict-row">
+          <span id="verdict">—</span>
+        </div>
+      </div>
+
+      <!-- Leyenda de ejes -->
+      <div class="axis-legend">
+        <span class="ax-tag"><span class="ax-dot" style="background:var(--ax1)"></span>eje 1 (I₁)</span>
+        <span class="ax-tag"><span class="ax-dot" style="background:var(--ax2)"></span>eje 2 (I₂)</span>
+        <span class="ax-tag"><span class="ax-dot" style="background:var(--ax3)"></span>eje 3 (I₃)</span>
+        <span class="ax-tag"><span class="ax-dot" style="background:#ffffff88"></span>M (esp.)</span>
+      </div>
+
+      <!-- Velocidad de simulación -->
+      <div class="speed-row">
+        <span>Velocidad:</span>
+        <input type="range" id="sl-speed" min="1" max="8" step="1" value="3">
+        <span id="val-speed" style="color:var(--white);font-weight:600;">3×</span>
+      </div>
+
+      <!-- Botones -->
+      <div class="btn-row">
+        <button id="btn-play" class="primary" onclick="togglePlay()">⏸ Pausar</button>
+        <button onclick="resetSim()">↺ Reiniciar</button>
+      </div>
+    </div>
+
+    <!-- Canvas 3: Polhodia -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Polhodia — trayectoria de Ω (cuerpo) · Landau §37</span>
+      <canvas id="polhodiaCanvas" width="370" height="215"></canvas>
+    </div>
+
+  </section>
+</main>
+
+<!-- ════════════════ CÓDIGO ════════════════ -->
+<div class="code-section">
+  <button class="code-toggle-btn" onclick="toggleCode()">
+    <span class="code-icon">&lt;/&gt;</span>
+    <span id="code-btn-label">Ver código fuente comentado</span>
+    <span style="margin-left:auto;font-size:9.5px;color:var(--dim);">Euler eqs · RK4 · Quaternion · Polhodia</span>
+  </button>
+  <div class="code-container" id="code-container">
+    <pre id="code-display">// Haz clic para cargar el código...</pre>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     JAVASCRIPT — FÍSICA COMPLETA + RENDER 3D
+════════════════════════════════════════════════════════════ -->
+<script>
+// ================================================================
+//  TEOREMA DEL EJE INTERMEDIO — "Efecto Raqueta de Tenis"
+//  Jhoan · Mecánica Teórica II · Universidad de Antioquia · 2026
+// ================================================================
+//
+//  FUNDAMENTO TEÓRICO (Landau & Lifshitz §37):
+//
+//  ┌─────────────────────────────────────────────────────────────┐
+//  │  Ecuaciones de Euler (cuerpo rígido libre, sin torques):    │
+//  │                                                             │
+//  │  I₁ Ω̇₁ = (I₂ − I₃) Ω₂ Ω₃                    (Ec. 36.5) │
+//  │  I₂ Ω̇₂ = (I₃ − I₁) Ω₃ Ω₁                               │
+//  │  I₃ Ω̇₃ = (I₁ − I₂) Ω₁ Ω₂                               │
+//  │                                                             │
+//  │  Dos integrales de movimiento:                              │
+//  │    Energía:   2E = I₁Ω₁² + I₂Ω₂² + I₃Ω₃²               │
+//  │    Mom. ang.: M² = I₁²Ω₁² + I₂²Ω₂² + I₃²Ω₃²            │
+//  │                                                             │
+//  │  Solución analítica (§37 ec. 37.10):                       │
+//  │    Ω₁(t) = A · cn(τ, k)                                   │
+//  │    Ω₂(t) = B · sn(τ, k)                                   │
+//  │    Ω₃(t) = C · dn(τ, k)                                   │
+//  │  donde sn, cn, dn son funciones elípticas de Jacobi.       │
+//  │                                                             │
+//  │  Parámetro (§37 ec. 37.9) para M² > 2EI₂:                │
+//  │    k² = (I₂−I₁)(2EI₃−M²) / [(I₃−I₂)(M²−2EI₁)]         │
+//  │                                                             │
+//  │  TEOREMA DEL EJE INTERMEDIO:                               │
+//  │    k → 1 cuando Ω₀ ≈ eje 2  →  T → ∞                    │
+//  │    La rotación alrededor del eje intermedio es INESTABLE   │
+//  │    Un pequeño desvío → volteo periódico de 180°            │
+//  └─────────────────────────────────────────────────────────────┘
+//
+//  La orientación del cuerpo se integra con cuaterniones
+//  para evitar bloqueo del cardán (gimbal lock).
+// ================================================================
+
+// ─────────────────────────────────────
+//  MOMENTOS DE INERCIA  (I₁ < I₂ < I₃)
+// ─────────────────────────────────────
+const I = { i1: 1.0, i2: 2.0, i3: 3.0 };
+
+// ─────────────────────────────────────
+//  ESTADO DINÁMICO (7 componentes)
+//  [Ω₁, Ω₂, Ω₃, q_w, q_x, q_y, q_z]
+//   — Ω en frame del cuerpo (ec. Euler)
+//   — q cuaternión cuerpo→espacio
+// ─────────────────────────────────────
+let state = [0, 0, 0, 1, 0, 0, 0];  // inicializado por setPreset()
+
+let t         = 0.0;
+let E0        = 0.0;   // energía inicial (conservada)
+let M2_0      = 0.0;   // M² inicial (conservado)
+let running   = true;
+let animId    = null;
+
+// ─────────────────────────────────────
+//  HISTORIA
+// ─────────────────────────────────────
+const MAX_OMEGA   = 800;   // puntos de Ω(t) para time series
+const MAX_POLH    = 6000;  // puntos de polhodia
+const omegaHist   = [];    // [{O1,O2,O3,t}]
+const polhodiaHist = [];   // [{O1,O2,O3}]
+
+// ─────────────────────────────────────
+//  INTEGRADOR
+// ─────────────────────────────────────
+const DT          = 0.001;   // paso de tiempo (s)
+let   STEPS_FRAME = 30;       // pasos por frame (= velocidad × 10)
+
+// ================================================================
+//  FÍSICA — DERIVADAS (Euler + cinemática de cuaternión)
+// ================================================================
+
+/**
+ * derivadas(s)
+ *
+ * Sistema acoplado de 7 EDOs:
+ *
+ * Ecuaciones de Euler (Landau §36.5):
+ *   dΩ₁/dt = (I₂−I₃)/I₁ · Ω₂Ω₃
+ *   dΩ₂/dt = (I₃−I₁)/I₂ · Ω₃Ω₁
+ *   dΩ₃/dt = (I₁−I₂)/I₃ · Ω₁Ω₂
+ *
+ * Cinemática del cuaternión (cuerpo→espacio):
+ *   dq/dt = ½ q ⊗ ω_puro
+ *   donde ω_puro = (0, Ω₁, Ω₂, Ω₃) en frame del cuerpo
+ *
+ * Multiplicación cuaternión q=(qw,qx,qy,qz) ⊗ (0, Ω₁, Ω₂, Ω₃):
+ *   dqw/dt = ½(−qx·Ω₁ − qy·Ω₂ − qz·Ω₃)
+ *   dqx/dt = ½(+qw·Ω₁ + qy·Ω₃ − qz·Ω₂)
+ *   dqy/dt = ½(+qw·Ω₂ − qx·Ω₃ + qz·Ω₁)
+ *   dqz/dt = ½(+qw·Ω₃ + qx·Ω₂ − qy·Ω₁)
+ */
+function derivadas([O1, O2, O3, qw, qx, qy, qz]) {
+  const { i1, i2, i3 } = I;
+
+  // Ecuaciones de Euler
+  const dO1 = ((i2 - i3) / i1) * O2 * O3;
+  const dO2 = ((i3 - i1) / i2) * O3 * O1;
+  const dO3 = ((i1 - i2) / i3) * O1 * O2;
+
+  // Cinemática cuaternión: dq/dt = ½ q ⊗ (0, Ω₁, Ω₂, Ω₃)
+  const dqw = 0.5 * (-qx*O1 - qy*O2 - qz*O3);
+  const dqx = 0.5 * ( qw*O1 + qy*O3 - qz*O2);
+  const dqy = 0.5 * ( qw*O2 - qx*O3 + qz*O1);
+  const dqz = 0.5 * ( qw*O3 + qx*O2 - qy*O1);
+
+  return [dO1, dO2, dO3, dqw, dqx, dqy, dqz];
+}
+
+/**
+ * rk4Step(s) — Runge-Kutta orden 4 para el vector de estado de 7 componentes
+ */
+function rk4Step(s) {
+  const h = DT;
+  const add = (a, b, f) => a.map((v, i) => v + f * b[i]);
+
+  const k1 = derivadas(s);
+  const k2 = derivadas(add(s, k1, h * 0.5));
+  const k3 = derivadas(add(s, k2, h * 0.5));
+  const k4 = derivadas(add(s, k3, h));
+
+  const ns = s.map((v, i) => v + (h/6)*(k1[i] + 2*k2[i] + 2*k3[i] + k4[i]));
+
+  // Renormalizar cuaternión para evitar drift numérico
+  const qn = Math.sqrt(ns[3]**2 + ns[4]**2 + ns[5]**2 + ns[6]**2);
+  ns[3] /= qn; ns[4] /= qn; ns[5] /= qn; ns[6] /= qn;
+
+  return ns;
+}
+
+// ================================================================
+//  FÍSICA — CANTIDADES CONSERVADAS Y PARÁMETRO k²
+// ================================================================
+
+/** energía cinética de rotación */
+function energia([O1, O2, O3]) {
+  return 0.5 * (I.i1*O1**2 + I.i2*O2**2 + I.i3*O3**2);
+}
+
+/** módulo cuadrado del momento angular en el cuerpo */
+function momentoAngCuad([O1, O2, O3]) {
+  return I.i1**2*O1**2 + I.i2**2*O2**2 + I.i3**2*O3**2;
+}
+
+/**
+ * computeK2() — parámetro k² de Landau §37 Ec.(37.9)
+ *
+ * Cuando M² > 2EI₂ (rotación cerca de eje 3):
+ *   k² = (I₂−I₁)(2EI₃−M²) / [(I₃−I₂)(M²−2EI₁)]
+ *
+ * Cuando M² < 2EI₂ (rotación cerca de eje 1), swap I₁↔I₃:
+ *   k² = (I₂−I₃)(M²−2EI₁) → misma fórmula intercambiando índices
+ *
+ * k=0: rotación pura alrededor de un eje estable
+ * k→1: separatriz (Teorema del Eje Intermedio, período → ∞)
+ */
+function computeK2(E, M2) {
+  const { i1, i2, i3 } = I;
+  const twoE = 2 * E;
+  const num   = (i2 - i1) * (twoE*i3 - M2);
+  const denom = (i3 - i2) * (M2 - twoE*i1);
+  if (denom <= 0 || num < 0) {
+    // intento con índices intercambiados
+    const num2   = (i2 - i3) * (M2 - twoE*i1);
+    const denom2 = (i1 - i2) * (twoE*i3 - M2);
+    if (denom2 !== 0 && num2/denom2 >= 0) return Math.min(1, num2/denom2);
+    return 1.0; // separatriz
+  }
+  return Math.min(1, num / denom);
+}
+
+/**
+ * Integral elíptica completa K(k) — aproximación de Hastings (error < 5e-5)
+ * Usada para estimar el período T.
+ */
+function ellipticK(k) {
+  if (k >= 1) return Infinity;
+  const m = k * k;
+  const m1 = 1 - m;
+  const poly = 1.3862944 + m1*(0.1119723 + m1*0.0725296);
+  const log  = -0.5*Math.log(m1);
+  return poly + log*(0.5 + m1*(0.1213478 + m1*0.0288729));
+}
+
+/**
+ * estimarPeriodo(E, M2, k2)
+ * T = 4K(k) · √(I₁I₂I₃ / [(I₃−I₂)(M²−2EI₁)])
+ */
+function estimarPeriodo(E, M2, k2) {
+  const { i1, i2, i3 } = I;
+  const inner = (i1*i2*i3) / ((i3-i2) * (M2 - 2*E*i1));
+  if (inner <= 0) return Infinity;
+  return 4 * ellipticK(Math.sqrt(k2)) * Math.sqrt(inner);
+}
+
+// ================================================================
+//  CUATERNIÓN → MATRIZ DE ROTACIÓN
+// ================================================================
+
+/**
+ * quatToMatrix([qw,qx,qy,qz]) → matriz 3×3 (array de filas)
+ * Transforma vectores del frame del CUERPO al frame del ESPACIO.
+ */
+function quatToMatrix([qw, qx, qy, qz]) {
+  return [
+    [1-2*(qy*qy+qz*qz),   2*(qx*qy-qw*qz),   2*(qx*qz+qw*qy)],
+    [  2*(qx*qy+qw*qz), 1-2*(qx*qx+qz*qz),   2*(qy*qz-qw*qx)],
+    [  2*(qx*qz-qw*qy),   2*(qy*qz+qw*qx), 1-2*(qx*qx+qy*qy)],
+  ];
+}
+
+/** Aplica la matriz 3×3 a un vector [x,y,z] */
+function mvMul(M, [x, y, z]) {
+  return [
+    M[0][0]*x + M[0][1]*y + M[0][2]*z,
+    M[1][0]*x + M[1][1]*y + M[1][2]*z,
+    M[2][0]*x + M[2][1]*y + M[2][2]*z,
+  ];
+}
+
+// ================================================================
+//  PROYECCIÓN 3D → 2D  (isométrica)
+// ================================================================
+
+/**
+ * project([x,y,z], cx, cy, scale) → [screen_x, screen_y]
+ *
+ * Proyección isométrica estándar:
+ *   screen_x = cx + (x − y) · cos30 · scale
+ *   screen_y = cy − (x + y) · sin30 · scale − z · scale
+ *
+ * Ejes visuales:
+ *   x → diagonal inferior-derecha
+ *   y → diagonal inferior-izquierda
+ *   z → vertical arriba
+ *
+ * Dirección de cámara implícita: normalize(1, 1, 1)
+ */
+const COS30 = Math.sqrt(3) / 2;  // ≈ 0.866
+const SIN30 = 0.5;
+
+function project([x, y, z], cx, cy, scale) {
+  return [
+    cx + (x - y) * COS30 * scale,
+    cy - (x + y) * SIN30 * scale - z * scale,
+  ];
+}
+
+/** Profundidad para algoritmo del pintor: dot([x,y,z], (1,1,1)/√3) */
+function depth([x, y, z]) { return (x + y + z) * 0.577; }
+
+// ================================================================
+//  GEOMETRÍA DEL CUERPO (libro/raqueta)
+// ================================================================
+
+// Semidimensiones del cuerpo en el frame del cuerpo.
+// Las proporciones reflejan la jerarquía de momentos de inercia:
+//   hx grande  → I₁ pequeño (eje largo, estable)
+//   hz mediano → I₂ intermedio (inestable)
+//   hy pequeño → I₃ grande (eje corto, estable)
+const HX = 0.36;  // semi-ancho  (eje 1, verde)
+const HY = 0.10;  // semi-grosor (eje 3, azul)
+const HZ = 0.25;  // semi-alto   (eje 2, rojo)
+
+// Los 8 vértices del paralelépipedo en frame del cuerpo
+const VERTS_BODY = [
+  [-HX,-HY,-HZ], [+HX,-HY,-HZ], [+HX,+HY,-HZ], [-HX,+HY,-HZ],  // 0-3: cara inferior
+  [-HX,-HY,+HZ], [+HX,-HY,+HZ], [+HX,+HY,+HZ], [-HX,+HY,+HZ],  // 4-7: cara superior
+];
+
+// Las 6 caras (índices de vértices, normal en frame del cuerpo, color base)
+const FACES = [
+  { v:[3,2,1,0], n:[0,0,-1], c:'#1a3a5c' },  // −z (inferior)
+  { v:[4,5,6,7], n:[0,0,+1], c:'#1a3a5c' },  // +z (superior)
+  { v:[0,1,5,4], n:[0,-1,0], c:'#162840' },  // −y (frente)
+  { v:[2,3,7,6], n:[0,+1,0], c:'#162840' },  // +y (atrás)
+  { v:[3,0,4,7], n:[-1,0,0], c:'#1f3d6e' },  // −x (izquierda)
+  { v:[1,2,6,5], n:[+1,0,0], c:'#1f3d6e' },  // +x (derecha)
+];
+
+// ================================================================
+//  CANVAS — REFERENCIAS
+// ================================================================
+
+const bodyCanvas     = document.getElementById('bodyCanvas');
+const omegaCanvas    = document.getElementById('omegaCanvas');
+const polhodiaCanvas = document.getElementById('polhodiaCanvas');
+const ctxB = bodyCanvas.getContext('2d');
+const ctxO = omegaCanvas.getContext('2d');
+const ctxP = polhodiaCanvas.getContext('2d');
+
+// ================================================================
+//  RENDER — CANVAS 1: CUERPO RÍGIDO 3D
+// ================================================================
+
+function drawBody() {
+  const W = bodyCanvas.width, H = bodyCanvas.height;
+  ctxB.clearRect(0, 0, W, H);
+
+  const cx = W * 0.48, cy = H * 0.52;
+  const SCALE = 160;
+
+  // Matriz de rotación cuerpo→espacio desde el cuaternión actual
+  const R = quatToMatrix(state.slice(3));
+
+  // ── Grid de fondo ──
+  ctxB.strokeStyle = '#0f1825'; ctxB.lineWidth = 0.5;
+  for (let x = 0; x < W; x += 50) { ctxB.beginPath(); ctxB.moveTo(x,0); ctxB.lineTo(x,H); ctxB.stroke(); }
+  for (let y = 0; y < H; y += 50) { ctxB.beginPath(); ctxB.moveTo(0,y); ctxB.lineTo(W,y); ctxB.stroke(); }
+
+  // ── Ejes del espacio (fijos, delgados) ──
+  const O3 = [0, 0, 0];
+  [[[1,0,0],'#ffffff18'], [[0,1,0],'#ffffff18'], [[0,0,1],'#ffffff18']].forEach(([dir, col]) => {
+    const tip = dir.map(v => v * 0.5);
+    const [sx, sy] = project(O3, cx, cy, SCALE);
+    const [tx, ty] = project(tip, cx, cy, SCALE);
+    ctxB.strokeStyle = col; ctxB.lineWidth = 1; ctxB.setLineDash([3,4]);
+    ctxB.beginPath(); ctxB.moveTo(sx,sy); ctxB.lineTo(tx,ty); ctxB.stroke();
+    ctxB.setLineDash([]);
+  });
+
+  // ── Momento angular M (constante en el espacio, blanco) ──
+  const [O1, O2, O3_] = state;
+  const L_body  = [I.i1*O1, I.i2*O2, I.i3*O3_];
+  const L_space = mvMul(R, L_body);
+  const Lmag    = Math.sqrt(L_space[0]**2 + L_space[1]**2 + L_space[2]**2) || 1;
+  const Lscaled = L_space.map(v => v / Lmag * 0.42);
+  drawArrow3D(ctxB, [0,0,0], Lscaled, '#ffffffcc', 2.5, cx, cy, SCALE);
+
+  // ── Transformar vértices al espacio ──
+  const verts_space = VERTS_BODY.map(v => mvMul(R, v));
+
+  // ── Caras con painter's algorithm ──
+  const faceData = FACES.map(face => {
+    const center3 = face.v.reduce((acc, i) => acc.map((v,j) => v + verts_space[i][j]/4), [0,0,0]);
+    const normal_space = mvMul(R, face.n);
+    const camera_dir = [0.577, 0.577, 0.577];
+    const vis = normal_space.reduce((s, v, i) => s + v * camera_dir[i], 0);
+    return { ...face, center3, vis };
+  });
+  faceData.sort((a, b) => depth(a.center3) - depth(b.center3));
+
+  faceData.forEach(({ v: vi, n: bodyN, c: baseColor, vis }) => {
+    const pts2d = vi.map(i => project(verts_space[i], cx, cy, SCALE));
+    // Iluminación simple: ambiental + difuso
+    const light = Math.max(0, vis);
+    const brightness = 0.35 + 0.65 * light;
+
+    ctxB.beginPath();
+    ctxB.moveTo(...pts2d[0]);
+    pts2d.slice(1).forEach(p => ctxB.lineTo(...p));
+    ctxB.closePath();
+
+    // Parse hex color y ajustar brillo
+    const r = parseInt(baseColor.slice(1,3),16);
+    const g = parseInt(baseColor.slice(3,5),16);
+    const b = parseInt(baseColor.slice(5,7),16);
+    ctxB.fillStyle = `rgba(${Math.round(r*brightness)},${Math.round(g*brightness)},${Math.round(b*brightness)},0.92)`;
+    ctxB.fill();
+    ctxB.strokeStyle = '#2a3f5888'; ctxB.lineWidth = 0.8;
+    ctxB.stroke();
+  });
+
+  // ── Ejes principales del cuerpo (coloreados) ──
+  // e₁ (verde, I₁ mínimo, estable) — eje x del cuerpo
+  drawArrow3D(ctxB, [0,0,0], mvMul(R,[HX*1.4,0,0]), '#3fb950', 2.5, cx, cy, SCALE);
+  // e₂ (rojo, I₂ intermedio, INESTABLE) — eje z del cuerpo
+  drawArrow3D(ctxB, [0,0,0], mvMul(R,[0,0,HZ*1.6]), '#f85149', 2.5, cx, cy, SCALE);
+  // e₃ (azul, I₃ máximo, estable) — eje y del cuerpo
+  drawArrow3D(ctxB, [0,0,0], mvMul(R,[0,HY*2.2,0]), '#58a6ff', 2.5, cx, cy, SCALE);
+
+  // ── Ω (vector de velocidad angular en espacio) ──
+  const Omag = Math.sqrt(O1**2+O2**2+O3_**2) || 1;
+  const Omega_space = mvMul(R, [O1/Omag*0.35, O2/Omag*0.35, O3_/Omag*0.35]);
+  drawArrow3D(ctxB, [0,0,0], Omega_space, '#e3b341aa', 1.5, cx, cy, SCALE);
+}
+
+/** drawArrow3D — dibuja una flecha 3D proyectada */
+function drawArrow3D(ctx, from, to, color, lw, cx, cy, scale) {
+  const [fx, fy] = project(from, cx, cy, scale);
+  const [tx, ty] = project(to,   cx, cy, scale);
+  ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(tx, ty); ctx.stroke();
+  // Punta de flecha
+  const angle = Math.atan2(ty - fy, tx - fx);
+  const ah = 8 * lw / 2.5;
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(tx - ah*Math.cos(angle-0.4), ty - ah*Math.sin(angle-0.4));
+  ctx.lineTo(tx - ah*Math.cos(angle+0.4), ty - ah*Math.sin(angle+0.4));
+  ctx.closePath(); ctx.fill();
+}
+
+// ================================================================
+//  RENDER — CANVAS 2: Ω(t) TIME SERIES
+// ================================================================
+
+function drawOmega() {
+  const W = omegaCanvas.width, H = omegaCanvas.height;
+  ctxO.clearRect(0, 0, W, H);
+  ctxO.fillStyle = '#090d16'; ctxO.fillRect(0, 0, W, H);
+
+  const pad = { t: 20, b: 26, l: 46, r: 14 };
+  const n = omegaHist.length;
+  if (n < 2) return;
+
+  // Rango temporal (últimos puntos)
+  const tMin = omegaHist[0].t, tMax = omegaHist[n-1].t;
+  const tRange = tMax - tMin || 1;
+
+  // Rango de Ω (auto-escala con margen)
+  let Omax = 0.5;
+  omegaHist.forEach(({ O1, O2, O3 }) => {
+    Omax = Math.max(Omax, Math.abs(O1), Math.abs(O2), Math.abs(O3));
+  });
+  Omax *= 1.15;
+
+  const toX = tv => pad.l + (tv - tMin) / tRange * (W - pad.l - pad.r);
+  const toY = Ov => pad.t + (1 - (Ov + Omax) / (2*Omax)) * (H - pad.t - pad.b);
+
+  // ── Grid ──
+  ctxO.strokeStyle = '#131e30'; ctxO.lineWidth = 1;
+  [Omax*0.5, 0, -Omax*0.5].forEach(v => {
+    ctxO.beginPath(); ctxO.moveTo(pad.l, toY(v)); ctxO.lineTo(W-pad.r, toY(v)); ctxO.stroke();
+  });
+
+  // Eje Ω=0
+  ctxO.strokeStyle = '#263347'; ctxO.lineWidth = 1.2;
+  ctxO.beginPath(); ctxO.moveTo(pad.l, toY(0)); ctxO.lineTo(W-pad.r, toY(0)); ctxO.stroke();
+
+  // ── Etiquetas ──
+  ctxO.fillStyle = '#3b4d66'; ctxO.font = '9px JetBrains Mono, monospace'; ctxO.textAlign='right';
+  ctxO.fillText(Omax.toFixed(1), pad.l-3, pad.t+8);
+  ctxO.fillText('0', pad.l-3, toY(0)+4);
+  ctxO.fillText((-Omax).toFixed(1), pad.l-3, H-pad.b);
+  ctxO.textAlign='left';
+  ctxO.fillText('t (s)', W-pad.r-20, H-6);
+
+  // Etiquetas eje Y
+  ctxO.save(); ctxO.translate(12, H/2); ctxO.rotate(-Math.PI/2);
+  ctxO.textAlign='center'; ctxO.fillText('Ω (rad/s)', 0, 0); ctxO.restore();
+
+  // ── Curvas Ω₁, Ω₂, Ω₃ ──
+  [
+    { key:'O1', color:'#3fb950', label:'Ω₁' },
+    { key:'O2', color:'#f85149', label:'Ω₂' },
+    { key:'O3', color:'#58a6ff', label:'Ω₃' },
+  ].forEach(({ key, color, label }) => {
+    ctxO.strokeStyle = color; ctxO.lineWidth = 1.5; ctxO.lineCap = 'round';
+    ctxO.beginPath();
+    omegaHist.forEach((p, i) => {
+      const x = toX(p.t), y = toY(p[key]);
+      i === 0 ? ctxO.moveTo(x, y) : ctxO.lineTo(x, y);
+    });
+    ctxO.stroke();
+    // Punto actual
+    const last = omegaHist[n-1];
+    ctxO.beginPath(); ctxO.arc(toX(last.t), toY(last[key]), 3.5, 0, 2*Math.PI);
+    ctxO.fillStyle = color; ctxO.fill();
+  });
+
+  // Leyenda
+  ctxO.textAlign = 'left';
+  [['Ω₁','#3fb950'], ['Ω₂','#f85149'], ['Ω₃','#58a6ff']].forEach(([lbl, col], i) => {
+    ctxO.fillStyle = col; ctxO.fillText(`${lbl}`, pad.l + 8 + i*40, pad.t + 14);
+  });
+}
+
+// ================================================================
+//  RENDER — CANVAS 3: POLHODIA
+// ================================================================
+
+function drawPolhodia() {
+  const W = polhodiaCanvas.width, H = polhodiaCanvas.height;
+  ctxP.clearRect(0, 0, W, H);
+  ctxP.fillStyle = '#090d16'; ctxP.fillRect(0, 0, W, H);
+
+  const cx = W * 0.48, cy = H * 0.54;
+
+  // Escala basada en semiejes del elipsoide de inercia: √(2E/Iₙ)
+  const E = E0 || energia(state);
+  const a1 = Math.sqrt(2*E / I.i1);  // semieje más largo
+  const PSCALE = Math.min(W*0.38, H*0.38) / a1;
+
+  // ── Elipses de referencia en los planos del cuerpo ──
+  // (contornos del elipsoide de inercia: intersecciones con Ωₙ=0)
+  drawEllipsePlane(ctxP, cx, cy, PSCALE, E, 'xz');  // plano Ω₂=0
+  drawEllipsePlane(ctxP, cx, cy, PSCALE, E, 'yz');  // plano Ω₁=0
+  drawEllipsePlane(ctxP, cx, cy, PSCALE, E, 'xy');  // plano Ω₃=0
+
+  // ── Polhodia (puntos acumulados) ──
+  const n = polhodiaHist.length;
+  for (let i = 0; i < n; i++) {
+    const { O1, O2, O3 } = polhodiaHist[i];
+    const [px, py] = project([O1, O2, O3], cx, cy, PSCALE);
+    const alpha = 0.2 + 0.8 * (i / n);
+    ctxP.fillStyle = `rgba(227,179,65,${alpha * 0.8})`;
+    ctxP.beginPath(); ctxP.arc(px, py, 1.3, 0, 2*Math.PI); ctxP.fill();
+  }
+
+  // Punto actual
+  if (n > 0) {
+    const { O1, O2, O3 } = polhodiaHist[n-1];
+    const [px, py] = project([O1, O2, O3], cx, cy, PSCALE);
+    ctxP.beginPath(); ctxP.arc(px, py, 4, 0, 2*Math.PI);
+    ctxP.fillStyle = '#e3b341'; ctxP.fill();
+    ctxP.strokeStyle = '#fff8'; ctxP.lineWidth = 1.5; ctxP.stroke();
+  }
+
+  // ── Ejes del cuerpo (cortos) ──
+  const axLen = a1 * 0.55;
+  [[[axLen,0,0],'#3fb95066'], [[0,0,axLen],'#f8514966'], [[0,axLen*0.7,0],'#58a6ff66']].forEach(([dir, col]) => {
+    const [sx, sy] = project([0,0,0], cx, cy, PSCALE);
+    const [tx, ty] = project(dir,      cx, cy, PSCALE);
+    ctxP.strokeStyle = col; ctxP.lineWidth = 1; ctxP.setLineDash([2,3]);
+    ctxP.beginPath(); ctxP.moveTo(sx,sy); ctxP.lineTo(tx,ty); ctxP.stroke();
+    ctxP.setLineDash([]);
+  });
+
+  // Etiquetas de los ejes
+  ctxP.fillStyle = '#556070'; ctxP.font = '9px JetBrains Mono, monospace';
+  ctxP.textAlign = 'left';
+  const [ax1x, ax1y] = project([axLen*1.1, 0, 0],         cx, cy, PSCALE);
+  const [ax2x, ax2y] = project([0, 0, axLen*1.1],         cx, cy, PSCALE);
+  const [ax3x, ax3y] = project([0, axLen*0.8, 0],         cx, cy, PSCALE);
+  ctxP.fillStyle = '#3fb950aa'; ctxP.fillText('Ω₁', ax1x+3, ax1y);
+  ctxP.fillStyle = '#f85149aa'; ctxP.fillText('Ω₂', ax2x+3, ax2y);
+  ctxP.fillStyle = '#58a6ffaa'; ctxP.fillText('Ω₃', ax3x+3, ax3y);
+}
+
+/**
+ * drawEllipsePlane — dibuja la elipse de intersección del elipsoide de inercia
+ * I₁Ω₁² + I₂Ω₂² + I₃Ω₃² = 2E con el plano Ωₙ=0.
+ *
+ * plane='xz': Ω₂=0 → I₁Ω₁² + I₃Ω₃² = 2E, semieje en x: √(2E/I₁), en z: √(2E/I₃)
+ * plane='yz': Ω₁=0 → elipse en y-z
+ * plane='xy': Ω₃=0 → elipse en x-y
+ */
+function drawEllipsePlane(ctx, cx, cy, scale, E, plane) {
+  const { i1, i2, i3 } = I;
+  const twoE = 2 * E;
+  ctx.strokeStyle = '#1e3a58'; ctx.lineWidth = 1; ctx.setLineDash([2,4]);
+  ctx.beginPath();
+  const N = 60;
+  for (let i = 0; i <= N; i++) {
+    const θ = (2*Math.PI*i/N);
+    let p;
+    if (plane === 'xz') {
+      const a = Math.sqrt(twoE/i1), b = Math.sqrt(twoE/i3);
+      p = [a*Math.cos(θ), 0, b*Math.sin(θ)];
+    } else if (plane === 'yz') {
+      const a = Math.sqrt(twoE/i2), b = Math.sqrt(twoE/i3);
+      p = [0, a*Math.cos(θ), b*Math.sin(θ)];
+    } else {
+      const a = Math.sqrt(twoE/i1), b = Math.sqrt(twoE/i2);
+      p = [a*Math.cos(θ), b*Math.sin(θ), 0];
+    }
+    const [px, py] = project(p, cx, cy, scale);
+    i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+}
+
+// ================================================================
+//  ACTUALIZAR DISPLAYS
+// ================================================================
+
+function updateDisplays() {
+  const [O1, O2, O3] = state;
+  const E   = energia(state);
+  const M2  = momentoAngCuad(state);
+  const k2  = computeK2(E, M2);
+  const T   = estimarPeriodo(E, M2, k2);
+
+  // Conservación
+  const dE  = E0  > 0 ? Math.abs((E  - E0 ) / E0 ) : 0;
+  const dM2 = M2_0 > 0 ? Math.abs((M2 - M2_0) / M2_0) : 0;
+
+  document.getElementById('val-k2').textContent = k2.toFixed(5);
+  document.getElementById('val-T').textContent  = isFinite(T) ? T.toFixed(2) + ' s' : '∞ (separatriz)';
+  document.getElementById('val-dE').textContent  = dE.toExponential(2);
+  document.getElementById('val-dM').textContent  = dM2.toExponential(2);
+
+  // Régimen
+  const badge   = document.getElementById('regime-badge');
+  const verdict = document.getElementById('verdict');
+  const vRow    = document.getElementById('verdict-row');
+
+  if (k2 > 0.98) {
+    verdict.textContent  = 'k ≈ 1 — SEPARATRIZ — Volteo de 180°';
+    verdict.style.color  = 'var(--red)';
+    badge.textContent    = '⚡ Separatriz k→1';
+    badge.className      = 'badge unstable';
+    vRow.style.borderTopColor = 'var(--red)';
+  } else if (k2 > 0.5) {
+    verdict.textContent  = `k² = ${k2.toFixed(3)} — eje 2 INESTABLE`;
+    verdict.style.color  = 'var(--orange)';
+    badge.textContent    = '↯ Eje 2 inestable';
+    badge.className      = 'badge boundary';
+    vRow.style.borderTopColor = 'var(--orange)';
+  } else {
+    const near1 = Math.abs(O2) < Math.abs(O1) && Math.abs(O3) < Math.abs(O1);
+    const ax    = near1 ? 1 : 3;
+    verdict.textContent  = `k² = ${k2.toFixed(3)} — eje ${ax} ESTABLE`;
+    verdict.style.color  = 'var(--green)';
+    badge.textContent    = `✓ Eje ${ax} estable`;
+    badge.className      = 'badge stable';
+    vRow.style.borderTopColor = 'var(--green)';
+  }
+
+  document.getElementById('live-vals').textContent =
+    `t = ${t.toFixed(2)} s  |  |Ω| = ${Math.sqrt(O1**2+O2**2+O3**2).toFixed(2)} rad/s`;
+}
+
+// ================================================================
+//  BUCLE DE ANIMACIÓN
+// ================================================================
+
+function step() {
+  if (!running) return;
+
+  for (let i = 0; i < STEPS_FRAME; i++) {
+    state = rk4Step(state);
+    t += DT;
+
+    // Guardar historia cada N pasos
+    if (i % 5 === 0) {
+      const [O1,O2,O3] = state;
+      omegaHist.push({ O1, O2, O3, t });
+      if (omegaHist.length > MAX_OMEGA) omegaHist.shift();
+      polhodiaHist.push({ O1, O2, O3 });
+      if (polhodiaHist.length > MAX_POLH) polhodiaHist.shift();
+    }
+  }
+
+  drawBody();
+  drawOmega();
+  drawPolhodia();
+  updateDisplays();
+
+  animId = requestAnimationFrame(step);
+}
+
+// ================================================================
+//  PRESETS
+// ================================================================
+
+/**
+ * setPreset(name) — configura condiciones iniciales físicamente interesantes.
+ *
+ * 'tennis'  : Ω₀ cerca del eje 2 (intermedio) → volteo periódico
+ * 'sep'     : Ω₀ casi exactamente en el eje 2 → k→1, período → ∞
+ * 'stable1' : Ω₀ cerca del eje 1 (I₁ mínimo) → rotación estable
+ * 'stable3' : Ω₀ cerca del eje 3 (I₃ máximo) → rotación estable
+ */
+function setPreset(name) {
+  const presets = {
+    //          Ω₁    Ω₂   Ω₃
+    tennis:  [0.8,  5.0, 0.4],   // k ≈ 0.97, volteos visibles
+    sep:     [0.05, 5.0, 0.05],  // k ≈ 0.9998, separatriz
+    stable1: [5.0,  0.3, 0.2],   // rotación estable alrededor de eje 1
+    stable3: [0.2,  0.3, 5.0],   // rotación estable alrededor de eje 3
+  };
+  const [O1, O2, O3] = presets[name] || presets.tennis;
+
+  state = [O1, O2, O3, 1, 0, 0, 0];  // cuaternión identidad
+  t = 0;
+  E0   = energia(state);
+  M2_0 = momentoAngCuad(state);
+  clearHistory();
+  updateDisplays();
+}
+
+function clearHistory() {
+  omegaHist.length = 0;
+  polhodiaHist.length = 0;
+}
+
+// ================================================================
+//  SLIDERS — MOMENTOS DE INERCIA
+// ================================================================
+
+function setupSliders() {
+  [['sl-I1','val-I1','i1'], ['sl-I2','val-I2','i2'], ['sl-I3','val-I3','i3']].forEach(([slId, valId, key]) => {
+    document.getElementById(slId).addEventListener('input', function() {
+      I[key] = parseFloat(this.value);
+      document.getElementById(valId).textContent = I[key].toFixed(2);
+      // Forzar I₁ < I₂ < I₃
+      if (key==='i1' && I.i1 >= I.i2) { I.i2 = I.i1+0.1; document.getElementById('sl-I2').value=I.i2; document.getElementById('val-I2').textContent=I.i2.toFixed(2); }
+      if (key==='i2' && I.i2 >= I.i3) { I.i3 = I.i2+0.1; document.getElementById('sl-I3').value=I.i3; document.getElementById('val-I3').textContent=I.i3.toFixed(2); }
+      if (key==='i2' && I.i2 <= I.i1) { I.i1 = I.i2-0.1; document.getElementById('sl-I1').value=I.i1; document.getElementById('val-I1').textContent=I.i1.toFixed(2); }
+      if (key==='i3' && I.i3 <= I.i2) { I.i2 = I.i3-0.1; document.getElementById('sl-I2').value=I.i2; document.getElementById('val-I2').textContent=I.i2.toFixed(2); }
+      // Recalcular cantidades iniciales
+      E0   = energia(state);
+      M2_0 = momentoAngCuad(state);
+      clearHistory();
+      updateDisplays();
+    });
+  });
+
+  // Velocidad de simulación
+  document.getElementById('sl-speed').addEventListener('input', function() {
+    const v = parseInt(this.value);
+    STEPS_FRAME = v * 10;
+    document.getElementById('val-speed').textContent = v + '×';
+  });
+}
+
+// ================================================================
+//  CONTROLES GENERALES
+// ================================================================
+
+function togglePlay() {
+  running = !running;
+  const btn = document.getElementById('btn-play');
+  if (running) {
+    btn.textContent = '⏸ Pausar';
+    btn.className = 'primary';
+    animId = requestAnimationFrame(step);
+  } else {
+    btn.textContent = '▶ Reanudar';
+    btn.className = '';
+    cancelAnimationFrame(animId);
+  }
+}
+
+function resetSim() {
+  state = [...state.slice(0,3), 1, 0, 0, 0];  // reset orientación, mantener Ω
+  t = 0;
+  clearHistory();
+}
+
+// ================================================================
+//  CÓDIGO FUENTE TOGGLE
+// ================================================================
+
+let codeLoaded = false;
+
+function toggleCode() {
+  const container = document.getElementById('code-container');
+  const label     = document.getElementById('code-btn-label');
+  const isOpen    = container.classList.toggle('open');
+  label.textContent = isOpen ? 'Ocultar código fuente' : 'Ver código fuente comentado';
+  if (isOpen && !codeLoaded) {
+    document.getElementById('code-display').textContent = document.documentElement.outerHTML;
+    codeLoaded = true;
+  }
+}
+
+// ================================================================
+//  INICIALIZACIÓN
+// ================================================================
+
+setupSliders();
+setPreset('tennis');
+step();
+
+</script>
+</body>
+</html>

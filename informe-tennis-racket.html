@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teorema del Eje Intermedio — Informe</title>
+
+<!-- ── MathJax 3 ── -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath:  [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    tags: 'ams',
+    macros: {
+      dd:   '\\mathrm{d}',
+      half: '\\tfrac{1}{2}',
+      bOm:  '\\boldsymbol{\\Omega}',
+      bL:   '\\mathbf{L}',
+      bN:   '\\mathbf{N}'
+    }
+  },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<!-- ── Google Fonts ── -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   RESET & VARIABLES  (idéntico al informe del Péndulo de Kapitza)
+═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --paper:   #ffffff;
+  --bg:      #f4f4f0;
+  --text:    #1a1a1a;
+  --dim:     #666;
+  --border:  #ddd;
+  --accent:  #1a3a6e;
+  --accent2: #8b0000;
+  --code-bg: #f5f5f5;
+  --sans:    system-ui, -apple-system, sans-serif;
+  --serif:   'Crimson Pro', Georgia, serif;
+  --mono:    'JetBrains Mono', 'Courier New', monospace;
+  --max-w:   780px;
+}
+
+html { background: var(--bg); }
+body { font-family: var(--serif); font-size: 17px; line-height: 1.75; color: var(--text); background: var(--bg); }
+
+.paper { max-width: var(--max-w); margin: 40px auto 80px; background: var(--paper); padding: 60px 70px; box-shadow: 0 2px 24px rgba(0,0,0,0.10); }
+@media (max-width: 860px) { .paper { margin: 0; padding: 32px 24px 60px; box-shadow: none; } }
+
+/* ── Cabecera ── */
+.report-header { border-bottom: 2px solid var(--accent); padding-bottom: 24px; margin-bottom: 36px; }
+.report-header h1 { font-family: var(--serif); font-size: 26px; font-weight: 600; color: var(--accent); line-height: 1.3; margin-bottom: 8px; }
+.report-header .subtitle { font-family: var(--serif); font-size: 15px; color: var(--dim); font-style: italic; margin-bottom: 18px; }
+.meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; font-family: var(--sans); font-size: 12.5px; color: var(--dim); border-top: 1px solid var(--border); padding-top: 14px; margin-top: 14px; }
+.meta-grid span { color: var(--text); font-weight: 500; }
+
+/* ── Secciones ── */
+section { margin-bottom: 40px; }
+h2 { font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--accent); margin-bottom: 14px; padding-bottom: 6px; border-bottom: 1px solid #dde4f0; }
+h3 { font-family: var(--serif); font-size: 17px; font-weight: 600; color: #2a3a5e; margin: 24px 0 10px; }
+p  { margin-bottom: 14px; text-align: justify; }
+.sec-num { color: var(--dim); margin-right: 8px; }
+
+/* ── Ecuaciones ── */
+.eq-block { margin: 20px 0; overflow-x: auto; }
+.eq-box { border: 1.5px solid var(--accent); border-radius: 6px; padding: 14px 20px; margin: 20px 0; background: #f7f9ff; overflow-x: auto; }
+.eq-label { font-family: var(--sans); font-size: 11.5px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+
+/* ── Derivación ── */
+.derivation { border-left: 3px solid #c8d4ee; padding-left: 20px; margin: 16px 0; }
+
+/* ── Tabla de parámetros ── */
+.param-table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 16px 0 24px; }
+.param-table th { background: var(--accent); color: white; font-family: var(--sans); font-size: 12px; font-weight: 600; letter-spacing: 0.3px; padding: 9px 14px; text-align: left; }
+.param-table td { padding: 8px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.param-table tr:nth-child(even) td { background: #f9f9f9; }
+.param-table td:first-child { font-family: var(--mono); font-size: 14px; color: var(--accent2); white-space: nowrap; }
+
+/* ── Placeholder simulación ── */
+.sim-placeholder { border: 2px dashed var(--border); border-radius: 8px; padding: 40px 24px; text-align: center; color: var(--dim); font-family: var(--sans); font-size: 14px; margin: 20px 0; background: #fafafa; }
+.sim-placeholder strong { color: var(--accent); display: block; margin-bottom: 6px; font-size: 15px; }
+
+/* ── Conclusiones y Referencias ── */
+ol.conclusions { padding-left: 20px; margin: 12px 0; }
+ol.conclusions li { margin-bottom: 12px; text-align: justify; }
+ol.refs { padding-left: 20px; font-size: 15.5px; }
+ol.refs li { margin-bottom: 10px; text-align: justify; }
+ol.refs li em { font-style: italic; }
+ol.refs li span.doi { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+
+/* ── Figuras ── */
+figure { text-align: center; margin: 24px auto; }
+figure svg { display: block; margin: 0 auto; }
+figcaption { font-size: 14px; color: var(--dim); margin-top: 8px; font-style: italic; }
+
+/* ── Tabla de estabilidad ── */
+.stab-table { width: 100%; border-collapse: collapse; font-size: 15px; margin: 14px 0 20px; }
+.stab-table th { background: #2a3a5e; color: white; font-family: var(--sans); font-size: 12px; font-weight: 600; padding: 8px 14px; text-align: center; }
+.stab-table td { padding: 8px 14px; border-bottom: 1px solid var(--border); text-align: center; }
+.stab-table td:first-child { text-align: left; font-family: var(--mono); color: var(--accent2); }
+.estable   { color: #1a6e2e; font-weight: 600; }
+.inestable { color: #8b0000; font-weight: 600; }
+
+/* Nota ── */
+.note { background: #fffbeb; border-left: 3px solid #d4a500; padding: 10px 16px; font-size: 15px; margin: 16px 0; color: #4a3800; }
+
+/* Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="paper">
+
+<!-- ══════════════════════════════════════════
+     CABECERA
+══════════════════════════════════════════ -->
+<header class="report-header">
+  <h1>Teorema del Eje Intermedio:<br>Inestabilidad de la Rotación Libre y la Raqueta de Tenis</h1>
+  <p class="subtitle">
+    Solución numérica de las ecuaciones de Euler y verificación analítica
+    mediante funciones elípticas de Jacobi — Landau &amp; Lifshitz §36–37
+  </p>
+  <div class="meta-grid">
+    <div>Curso: <span>Mecánica Teórica II</span></div>
+    <div>Sección: <span>Cuerpo Rígido — Tarea 2</span></div>
+    <div>Docente: <span>Jorge Mahecha Gómez</span></div>
+    <div>Institución: <span>Universidad de Antioquia</span></div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════
+     1. PLANTEAMIENTO
+══════════════════════════════════════════ -->
+<section id="planteamiento">
+  <h2><span class="sec-num">1.</span>Planteamiento del problema</h2>
+  <p>
+    Se estudia la rotación libre —sin torques externos— de un cuerpo rígido completamente
+    asimétrico cuyos momentos de inercia principales satisfacen $I_1 < I_2 < I_3$.
+    El problema consiste en determinar analíticamente la estabilidad de la rotación
+    alrededor de cada uno de los tres ejes principales, resolver numéricamente las
+    ecuaciones de Euler y verificar que la rotación alrededor del eje de momento
+    de inercia <em>intermedio</em> $I_2$ es inestable: una pequeña perturbación
+    provoca un volteo periódico de $180°$ en la orientación del cuerpo, fenómeno
+    conocido como el <strong>Teorema de la Raqueta de Tenis</strong> (o efecto Dzhanibekov),
+    cuya solución analítica exacta involucra funciones elípticas de Jacobi
+    (Landau &amp; Lifshitz §37).
+  </p>
+</section>
+
+<!-- ══════════════════════════════════════════
+     2. MARCO TEÓRICO
+══════════════════════════════════════════ -->
+<section id="teoria">
+  <h2><span class="sec-num">2.</span>Marco teórico</h2>
+
+  <!-- 2.1 Configuración -->
+  <h3>2.1 Configuración del sistema</h3>
+
+  <p>
+    Se considera un cuerpo rígido asimétrico con tres momentos de inercia principales
+    distintos $I_1 < I_2 < I_3$, referidos a los ejes principales del cuerpo
+    $\hat{\mathbf{e}}_1$, $\hat{\mathbf{e}}_2$, $\hat{\mathbf{e}}_3$.
+    En ausencia de torques, el vector de velocidad angular en el frame del cuerpo es
+    $\boldsymbol{\Omega} = (\Omega_1,\Omega_2,\Omega_3)$.
+  </p>
+
+  <!-- Figura: cuerpo con ejes coloreados -->
+  <figure>
+    <svg width="280" height="210" viewBox="0 0 280 210" xmlns="http://www.w3.org/2000/svg">
+      <!-- Proyección isométrica de una caja aplanada (libro/raqueta) -->
+      <!-- Cara superior -->
+      <polygon points="80,70 180,70 220,100 120,100" fill="#d8e4f5" stroke="#1a3a6e" stroke-width="1.2"/>
+      <!-- Cara derecha -->
+      <polygon points="180,70 220,100 220,150 180,120" fill="#b0c8e8" stroke="#1a3a6e" stroke-width="1.2"/>
+      <!-- Cara frontal -->
+      <polygon points="80,70 120,100 120,150 80,120" fill="#c8daf0" stroke="#1a3a6e" stroke-width="1.2"/>
+      <!-- Cara inferior -->
+      <polygon points="80,120 120,150 220,150 180,120" fill="#9ab8d8" stroke="#1a3a6e" stroke-width="1.2"/>
+
+      <!-- Centro del cuerpo aprox -->
+      <!-- Eje e₁ — verde (I₁ mínimo, estable) — eje largo (x) -->
+      <line x1="150" y1="110" x2="230" y2="80" stroke="#1a6e2e" stroke-width="2.5" stroke-linecap="round"/>
+      <polygon points="230,80 218,80 224,70" fill="#1a6e2e"/>
+      <text x="234" y="84" font-size="12" fill="#1a6e2e" font-family="serif" font-style="italic" font-weight="bold">ê₁</text>
+      <text x="218" y="68" font-size="10" fill="#1a6e2e" font-family="sans-serif">(I₁, estable)</text>
+
+      <!-- Eje e₂ — rojo (I₂ intermedio, inestable) — eje vertical (z del cuerpo) -->
+      <line x1="150" y1="110" x2="150" y2="30" stroke="#8b0000" stroke-width="2.5" stroke-linecap="round"/>
+      <polygon points="150,30 143,42 157,42" fill="#8b0000"/>
+      <text x="155" y="26" font-size="12" fill="#8b0000" font-family="serif" font-style="italic" font-weight="bold">ê₂</text>
+      <text x="158" y="38" font-size="10" fill="#8b0000" font-family="sans-serif">(I₂, inestable)</text>
+
+      <!-- Eje e₃ — azul (I₃ máximo, estable) — eje grosor (y del cuerpo) -->
+      <line x1="150" y1="110" x2="80" y2="80" stroke="#1a3a8b" stroke-width="2.5" stroke-linecap="round"/>
+      <polygon points="80,80 90,72 86,84" fill="#1a3a8b"/>
+      <text x="56" y="78" font-size="12" fill="#1a3a8b" font-family="serif" font-style="italic" font-weight="bold">ê₃</text>
+      <text x="14" y="90" font-size="10" fill="#1a3a8b" font-family="sans-serif">(I₃, estable)</text>
+
+      <!-- Etiqueta -->
+      <text x="110" y="195" font-size="11" fill="#666" font-family="sans-serif" text-anchor="middle">I₁ &lt; I₂ &lt; I₃</text>
+    </svg>
+    <figcaption>Figura 1. Cuerpo rígido asimétrico con sus tres ejes principales.
+    La rotación libre alrededor de $\hat{\mathbf{e}}_1$ (verde) y $\hat{\mathbf{e}}_3$ (azul) es estable;
+    alrededor de $\hat{\mathbf{e}}_2$ (rojo) es inestable.</figcaption>
+  </figure>
+
+  <!-- 2.2 Ecuaciones de Euler -->
+  <h3>2.2 Ecuaciones de Euler (Landau §36)</h3>
+
+  <p>
+    La ecuación de movimiento para el momento angular en el frame inercial es
+    $d\mathbf{L}/dt = \mathbf{N}$.
+    En el frame del cuerpo (que rota a velocidad angular $\boldsymbol{\Omega}$),
+    la derivada temporal de cualquier vector $\mathbf{A}$ satisface
+    $(d\mathbf{A}/dt)_\text{esp} = (d\mathbf{A}/dt)_\text{cuerpo} + \boldsymbol{\Omega}\times\mathbf{A}$.
+    Para un cuerpo libre ($\mathbf{N}=\mathbf{0}$), con componentes del momento angular
+    $L_i = I_i\Omega_i$ en los ejes principales:
+  </p>
+
+  <div class="eq-box">
+    <div class="eq-label">Ecuaciones de Euler — rotación libre (Landau §36.5)</div>
+    $$I_1\dot\Omega_1 = (I_2 - I_3)\,\Omega_2\Omega_3, \tag{1a}$$
+    $$I_2\dot\Omega_2 = (I_3 - I_1)\,\Omega_3\Omega_1, \tag{1b}$$
+    $$I_3\dot\Omega_3 = (I_1 - I_2)\,\Omega_1\Omega_2. \tag{1c}$$
+  </div>
+
+  <p>
+    El sistema (1) es no lineal y acoplado. Sin embargo, admite dos integrales primeras
+    exactas derivadas de las leyes de conservación.
+  </p>
+
+  <!-- 2.3 Integrales de movimiento -->
+  <h3>2.3 Integrales de movimiento e interpretación geométrica</h3>
+
+  <p>
+    Multiplicando (1a) por $I_1\Omega_1$, (1b) por $I_2\Omega_2$, (1c) por $I_3\Omega_3$ y sumando,
+    y análogamente con $\Omega_1$, $\Omega_2$, $\Omega_3$, se obtienen las dos cantidades conservadas:
+  </p>
+
+  $$2E \;=\; I_1\Omega_1^2 + I_2\Omega_2^2 + I_3\Omega_3^2 \qquad (\text{energía cinética}), \tag{2}$$
+  $$M^2 \;=\; I_1^2\Omega_1^2 + I_2^2\Omega_2^2 + I_3^2\Omega_3^2 \qquad (\text{momento angular}^2). \tag{3}$$
+
+  <p>
+    En términos de $M_i = I_i\Omega_i$, las ecuaciones (2) y (3) describen, respectivamente,
+    un <strong>elipsoide</strong> con semiejes $\sqrt{2EI_i}$ y una <strong>esfera</strong>
+    de radio $M$ en el espacio $(M_1,M_2,M_3)$.
+    El extremo del vector $\mathbf{M}$ queda confinado a la intersección de ambas
+    superficies: la curva resultante recibe el nombre de <strong>polhodia</strong>
+    (Landau §37, Fig. 51).
+  </p>
+
+  <p>
+    La naturaleza de la polhodia cambia cualitativamente según el valor de $M^2$
+    relativo a $2EI_i$:
+  </p>
+
+  <table class="stab-table">
+    <thead>
+      <tr>
+        <th style="text-align:left">Régimen</th>
+        <th>Condición</th>
+        <th>Forma de la polhodia</th>
+        <th>Estabilidad</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Cerca de $\hat{\mathbf{e}}_1$</td>
+        <td>$M^2 \approx 2EI_1$</td>
+        <td>Curva cerrada pequeña alrededor del polo en $\hat{\mathbf{e}}_1$</td>
+        <td class="estable">ESTABLE</td>
+      </tr>
+      <tr>
+        <td>Separatriz (eje 2)</td>
+        <td>$M^2 = 2EI_2$</td>
+        <td>Dos semielipses que se cruzan en los polos de $\hat{\mathbf{e}}_2$</td>
+        <td class="inestable">INESTABLE</td>
+      </tr>
+      <tr>
+        <td>Cerca de $\hat{\mathbf{e}}_3$</td>
+        <td>$M^2 \approx 2EI_3$</td>
+        <td>Curva cerrada pequeña alrededor del polo en $\hat{\mathbf{e}}_3$</td>
+        <td class="estable">ESTABLE</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- 2.4 Análisis de estabilidad lineal -->
+  <h3>2.4 Análisis de estabilidad lineal</h3>
+
+  <p>
+    Se examinan pequeñas perturbaciones $\delta\boldsymbol{\Omega}$ alrededor de la
+    rotación uniforme en cada eje. Para el <strong>eje intermedio</strong>
+    $\hat{\mathbf{e}}_2$, sea $\boldsymbol{\Omega} = (\delta\Omega_1,\,\Omega_0,\,\delta\Omega_3)$
+    con $\delta\Omega \ll \Omega_0$. Linearizando (1):
+  </p>
+
+  <div class="derivation">
+    <p>De (1a) y (1c), con $\Omega_2 \approx \Omega_0 = \text{const}$ al primer orden:</p>
+    $$I_1\,\delta\dot\Omega_1 = (I_2-I_3)\,\Omega_0\,\delta\Omega_3, \qquad
+      I_3\,\delta\dot\Omega_3 = (I_1-I_2)\,\Omega_0\,\delta\Omega_1.$$
+    <p>Derivando la primera respecto al tiempo y sustituyendo la segunda:</p>
+    $$\delta\ddot\Omega_1 = \frac{(I_2-I_3)(I_1-I_2)}{I_1 I_3}\,\Omega_0^2\;\delta\Omega_1. \tag{4}$$
+  </div>
+
+  <p>
+    Dado que $I_1 < I_2 < I_3$, se tiene $(I_2-I_3) < 0$ e $(I_1-I_2) < 0$,
+    con lo que el producto es <em>positivo</em>. La ecuación (4) es de la forma
+    $\delta\ddot\Omega_1 = +\lambda^2\delta\Omega_1$ con:
+  </p>
+
+  $$\lambda = \Omega_0\sqrt{\frac{(I_3-I_2)(I_2-I_1)}{I_1 I_3}} \;>\; 0. \tag{5}$$
+
+  <p>
+    La solución $\delta\Omega_1 \sim e^{\lambda t}$ crece exponencialmente:
+    el eje intermedio es <strong>inestable</strong>.
+    El mismo análisis para $\hat{\mathbf{e}}_1$ y $\hat{\mathbf{e}}_3$ produce
+    $\delta\ddot\Omega = -\omega^2\delta\Omega$ con $\omega^2 > 0$,
+    es decir, oscilaciones acotadas: ambos son <strong>estables</strong>.
+  </p>
+
+  <!-- 2.5 Solución analítica: funciones elípticas -->
+  <h3>2.5 Solución analítica: funciones elípticas de Jacobi (Landau §37)</h3>
+
+  <p>
+    Expresando $\Omega_1$ y $\Omega_3$ en función de $\Omega_2$ mediante (2) y (3),
+    la segunda ecuación de Euler (1b) se reduce a:
+  </p>
+
+  $$\frac{d\Omega_2}{dt} = \sqrt{
+    \frac{\bigl[(2EI_3-M^2) - I_2(I_3-I_2)\Omega_2^2\bigr]
+          \bigl[(M^2-2EI_1) - I_2(I_2-I_1)\Omega_2^2\bigr]}
+    {I_1 I_2^2 I_3}}. \tag{6}$$
+
+  <p>
+    La inversión de esta integral elíptica mediante las sustituciones
+    $\tau = t\sqrt{(I_3-I_2)(M^2-2EI_1)/(I_1 I_2 I_3)}$ y
+    $s = \Omega_2\sqrt{I_2(I_3-I_2)/(2EI_3-M^2)}$
+    conduce a la solución exacta (para $M^2 > 2EI_2$):
+  </p>
+
+  <div class="eq-box">
+    <div class="eq-label">Solución exacta — Landau §37, Ec. (37.10)</div>
+    $$\Omega_1(t) = A\;\mathrm{cn}(\tau,k), \qquad
+      \Omega_2(t) = B\;\mathrm{sn}(\tau,k), \qquad
+      \Omega_3(t) = C\;\mathrm{dn}(\tau,k), \tag{7}$$
+
+    $$A = \sqrt{\frac{2EI_3-M^2}{I_1(I_3-I_1)}}, \quad
+      B = \sqrt{\frac{2EI_3-M^2}{I_2(I_3-I_2)}}, \quad
+      C = \sqrt{\frac{M^2-2EI_1}{I_3(I_3-I_1)}}, \tag{8}$$
+  </div>
+
+  <p>
+    donde $\mathrm{sn}(\tau,k)$, $\mathrm{cn}(\tau,k)$ y $\mathrm{dn}(\tau,k)$ son las
+    <em>funciones elípticas de Jacobi</em> con módulo:
+  </p>
+
+  <div class="eq-box">
+    <div class="eq-label">Parámetro elíptico — Landau §37, Ec. (37.9)</div>
+    $$k^2 \;=\; \frac{(I_2-I_1)(2EI_3-M^2)}{(I_3-I_2)(M^2-2EI_1)}, \qquad 0 \leq k^2 \leq 1. \tag{9}$$
+  </div>
+
+  <p>
+    Las funciones $\mathrm{sn}$, $\mathrm{cn}$, $\mathrm{dn}$ son periódicas con período
+    $4K(k)$ en $\tau$, donde $K(k) = \int_0^1 ds/\sqrt{(1-s^2)(1-k^2s^2)}$
+    es la <em>integral elíptica completa de primera especie</em>.
+    El período temporal de la solución es:
+  </p>
+
+  $$T = 4K(k)\sqrt{\frac{I_1 I_2 I_3}{(I_3-I_2)(M^2-2EI_1)}}. \tag{10}$$
+
+  <!-- 2.6 Teorema del eje intermedio -->
+  <h3>2.6 El Teorema de la Raqueta de Tenis ($k \to 1$)</h3>
+
+  <p>
+    Cuando la rotación inicial se dirige cerca del eje intermedio
+    $\hat{\mathbf{e}}_2$, se tiene $M^2 \approx 2EI_2$,
+    lo que produce numerador y denominador de (9) de orden comparable y
+    $k^2 \to 1^-$.
+    En este límite:
+  </p>
+
+  <div class="derivation">
+    <p><strong>Comportamiento de $K(k)$:</strong> cuando $k\to 1$,
+    $K(k)\to\infty$ de forma logarítmica: $K(k)\approx\ln\!\left(4/\sqrt{1-k^2}\right)$.
+    Por tanto, el período $T\to\infty$: la separatriz tiene período infinito.</p>
+
+    <p><strong>Comportamiento de las funciones elípticas:</strong>
+    en el límite $k=1$, $\mathrm{sn}(\tau,1)=\tanh\tau$ y $\mathrm{cn}(\tau,1) = \mathrm{sech}\,\tau$.
+    La función $\mathrm{cn}(\tau,k)$ cambia de signo durante cada período, lo que implica
+    que $\Omega_1(t)$ pasa de $+A$ a $-A$: el cuerpo experimenta un <strong>volteo de $180°$</strong>
+    en la dirección del eje $\hat{\mathbf{e}}_1$.</p>
+  </div>
+
+  <div class="eq-box">
+    <div class="eq-label">Teorema del eje intermedio</div>
+    <p style="margin:0; font-size:16px;">
+      Un cuerpo rígido asimétrico que rota con $\boldsymbol{\Omega}_0 \approx \Omega_0\hat{\mathbf{e}}_2$
+      experimenta volteos periódicos de $180°$ alrededor de los ejes $\hat{\mathbf{e}}_1$
+      y $\hat{\mathbf{e}}_3$, con período $T \to \infty$ cuando $\boldsymbol{\Omega}_0 \to \Omega_0\hat{\mathbf{e}}_2$ exacto.
+      Este comportamiento corresponde al régimen $k\to 1$ en la solución (7).
+    </p>
+  </div>
+
+  <!-- 2.7 Integración numérica -->
+  <h3>2.7 Integración numérica: RK4 y cuaterniones</h3>
+
+  <p>
+    Las ecuaciones de Euler (1) para $\boldsymbol{\Omega}$ se integran numéricamente mediante
+    RK4, igual que en el informe anterior. Para seguir la orientación del cuerpo en el
+    espacio se integra simultáneamente el <strong>cuaternión unitario</strong>
+    $\mathbf{q} = (q_w, q_x, q_y, q_z)$ que representa la rotación del frame del cuerpo
+    al frame del espacio, evitando la singularidad del bloqueo del cardán presente
+    en los ángulos de Euler.
+  </p>
+
+  <p>
+    El vector de estado completo es $\mathbf{y} = (\Omega_1,\Omega_2,\Omega_3,q_w,q_x,q_y,q_z)^\top$,
+    gobernado por el sistema de 7 EDOs:
+  </p>
+
+  <div class="eq-box">
+    <div class="eq-label">Sistema de EDOs — física (Euler) + cinemática (cuaternión)</div>
+    $$\frac{d\Omega_i}{dt} \;\text{según (1)}, \tag{11a}$$
+    $$\frac{d\mathbf{q}}{dt} = \tfrac{1}{2}\,\mathbf{q}\otimes\boldsymbol{\omega}, \qquad
+      \boldsymbol{\omega} = (0,\,\Omega_1,\,\Omega_2,\,\Omega_3), \tag{11b}$$
+  </div>
+
+  <p>
+    donde $\otimes$ denota el producto cuaterniónico.
+    El cuaternión se renormaliza $|\mathbf{q}|=1$ al finalizar cada paso de RK4
+    para controlar el drift numérico.
+    La orientación del cuerpo se recupera mediante la matriz de rotación:
+  </p>
+
+  $$R_{ij}(\mathbf{q}) = \delta_{ij} - 2\varepsilon_{ijk}q_k q_w
+    + 2(q_i q_j - \delta_{ij}q_k^2). \tag{12}$$
+
+  <!-- 2.8 Parámetros -->
+  <h3>2.8 Parámetros de la simulación</h3>
+
+  <table class="param-table">
+    <thead>
+      <tr>
+        <th>Parámetro</th>
+        <th>Símbolo</th>
+        <th>Rango / valor</th>
+        <th>Rol físico</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>$I_1$</td>
+        <td>Momento mínimo</td>
+        <td>$0.2$–$3.0$ kg·m²</td>
+        <td>Eje estable $\hat{\mathbf{e}}_1$; rotación rápida alrededor de él es estable</td>
+      </tr>
+      <tr>
+        <td>$I_2$</td>
+        <td>Momento intermedio</td>
+        <td>$0.2$–$3.0$ kg·m²</td>
+        <td>Eje inestable: $k\to 1$ cuando $\boldsymbol{\Omega}_0 \parallel \hat{\mathbf{e}}_2$</td>
+      </tr>
+      <tr>
+        <td>$I_3$</td>
+        <td>Momento máximo</td>
+        <td>$0.2$–$5.0$ kg·m²</td>
+        <td>Eje estable $\hat{\mathbf{e}}_3$; lanzar el cuerpo como frisbee</td>
+      </tr>
+      <tr>
+        <td>$\boldsymbol{\Omega}_0$</td>
+        <td>Condición inicial</td>
+        <td>Presets: tennis, separatriz, estable 1/3</td>
+        <td>Determina $M^2$, $E$ y por tanto $k^2$ según (9)</td>
+      </tr>
+      <tr>
+        <td>$k^2$</td>
+        <td>Módulo elíptico</td>
+        <td>$0 \leq k^2 \leq 1$ (calculado)</td>
+        <td>$k\to 0$: rotación casi pura; $k\to 1$: volteo de 180° (separatriz)</td>
+      </tr>
+      <tr>
+        <td>$h$</td>
+        <td>Paso RK4</td>
+        <td>$10^{-3}$ s (fijo)</td>
+        <td>Resuelve la escala $1/|\boldsymbol{\Omega}|$ con error $\mathcal{O}(h^4)$</td>
+      </tr>
+    </tbody>
+  </table>
+
+</section>
+
+<!-- ══════════════════════════════════════════
+     3. SIMULACIÓN
+══════════════════════════════════════════ -->
+<section id="simulacion">
+  <h2><span class="sec-num">3.</span>Simulación interactiva</h2>
+  <p>
+    La simulación integra numéricamente el sistema (11) mediante RK4 con paso
+    $h = 10^{-3}$ s y 30 pasos por cuadro de animación.
+    Se visualizan simultáneamente: (i) la rotación 3D del cuerpo rígido con sus
+    tres ejes principales coloreados; (ii) las componentes $\Omega_i(t)$ en función
+    del tiempo, cuya forma corresponde a las funciones $\mathrm{cn}$, $\mathrm{sn}$,
+    $\mathrm{dn}$ de la solución analítica (7); y (iii) la <strong>polhodia</strong>,
+    trayectoria del extremo de $\boldsymbol{\Omega}$ en el elipsoide de inercia
+    (Landau §37, Fig. 51).
+    Los controles permiten variar $I_1$, $I_2$, $I_3$ y seleccionar presets que
+    ubican al sistema en distintos regímenes de $k^2$.
+  </p>
+
+  <!-- ╔════════════════════════════════════╗
+       ║  INSERTAR SIMULACIÓN AQUÍ         ║
+       ╚════════════════════════════════════╝ -->
+  <div class="sim-placeholder">
+    <strong>[ Simulación — Teorema del Eje Intermedio / Raqueta de Tenis ]</strong>
+    Insertar aquí el <code>&lt;iframe&gt;</code> o el <code>&lt;script&gt;</code>
+    de la simulación interactiva.
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     4. ANÁLISIS Y CONCLUSIONES
+══════════════════════════════════════════ -->
+<section id="conclusiones">
+  <h2><span class="sec-num">4.</span>Análisis y conclusiones</h2>
+
+  <ol class="conclusions">
+    <li>
+      <strong>Verificación de la inestabilidad del eje intermedio.</strong>
+      El preset <em>Raqueta de Tenis</em> confirma el análisis de estabilidad lineal
+      de la sección 2.4: con $\boldsymbol{\Omega}_0$ dirigido cerca de $\hat{\mathbf{e}}_2$,
+      el cuerpo experimenta volteos periódicos de $180°$ observables en la animación 3D
+      y en el cambio de signo de $\Omega_1(t)$, mientras que la magnitud
+      $|\boldsymbol{\Omega}|$ y las cantidades conservadas $E$ y $M^2$ permanecen constantes.
+      En contraste, los presets <em>Estable eje 1</em> y <em>Estable eje 3</em> producen
+      oscilaciones acotadas sin volteos.
+    </li>
+    <li>
+      <strong>Coherencia con la solución analítica de Jacobi.</strong>
+      La forma de las curvas $\Omega_i(t)$ en la gráfica de series de tiempo sigue
+      fielmente las funciones $\mathrm{cn}(\tau,k)$, $\mathrm{sn}(\tau,k)$ y $\mathrm{dn}(\tau,k)$
+      predichas por la ecuación (7): $\Omega_1$ oscila entre $\pm A$ (función tipo coseno
+      elíptico), $\Omega_2$ entre $\pm B$ (seno elíptico) y $\Omega_3$ permanece positiva
+      y acotada entre $C\sqrt{1-k^2}$ y $C$ (función dn). Esto valida la derivación
+      analítica del §37.
+    </li>
+    <li>
+      <strong>Período y el límite $k\to 1$.</strong>
+      El preset <em>Separatriz</em> ($\boldsymbol{\Omega}_0$ casi exactamente paralelo
+      a $\hat{\mathbf{e}}_2$) produce un $k^2$ muy próximo a 1, con un período $T$
+      muy grande. La simulación muestra que el volteo, aunque eventual, tarda
+      considerablemente más en producirse: la polhodia se acerca asintóticamente a los
+      polos de $\hat{\mathbf{e}}_2$ del elipsoide, consistente con $T\to\infty$ cuando
+      $k\to 1$.
+    </li>
+    <li>
+      <strong>Interpretación geométrica: la polhodia.</strong>
+      Las trayectorias de $\boldsymbol{\Omega}$ sobre el elipsoide de inercia (polhodia)
+      reproducen cualitativamente la figura 51 de Landau: curvas cerradas alrededor
+      de los polos de $\hat{\mathbf{e}}_1$ y $\hat{\mathbf{e}}_3$ en los regímenes
+      estables, y una trayectoria que cruza los polos de $\hat{\mathbf{e}}_2$ en el
+      régimen inestable. La separatriz visible en la polhodia corresponde exactamente
+      a la condición $M^2 = 2EI_2$.
+    </li>
+    <li>
+      <strong>Conservación del momento angular.</strong>
+      El vector $\mathbf{L} = \mathbf{R}\cdot(I_i\Omega_i)$ en el frame del espacio
+      permanece fijo durante toda la simulación (verificado por el indicador
+      $|\Delta M^2/M_0^2| < 10^{-6}$), confirmando tanto la corrección
+      de las ecuaciones de Euler como la precisión del integrador RK4.
+    </li>
+    <li>
+      <strong>Necesidad del cuaternión.</strong>
+      La integración de la orientación mediante el cuaternión (11b) evita la
+      singularidad del <em>bloqueo del cardán</em> que ocurriría con ángulos de Euler
+      convencionales cuando dos ejes se alinean. Dado que el fenómeno del volteo implica
+      precisamente cambios grandes de orientación, el uso del cuaternión es esencial
+      para la representación 3D correcta.
+    </li>
+  </ol>
+</section>
+
+<!-- ══════════════════════════════════════════
+     REFERENCIAS
+══════════════════════════════════════════ -->
+<section id="referencias">
+  <h2>Referencias</h2>
+
+  <ol class="refs">
+    <li>
+      L. D. Landau y E. M. Lifshitz,
+      <em>Mecánica</em>, 3.ª ed.
+      §36 (Ecuaciones de Euler), §37 (Trompo asimétrico, funciones elípticas de Jacobi).
+      Reverté, Barcelona, 1994.
+    </li>
+    <li>
+      H. Goldstein, C. P. Poole y J. L. Safko,
+      <em>Classical Mechanics</em>, 3.ª ed.
+      §5.6 (Torque-free motion), §5.7 (Heavy symmetrical top).
+      Addison-Wesley, San Francisco, 2002.
+    </li>
+    <li>
+      M. S. Ashbaugh, C. C. Chicone y R. H. Cushman,
+      "The twisting tennis racket,"
+      <em>Journal of Dynamics and Differential Equations</em>,
+      vol. 3, núm. 1, pp. 67–85, 1991.
+      <br><span class="doi">doi: 10.1007/BF01049489</span>
+    </li>
+    <li>
+      V. A. Borisov y A. A. Kilin,
+      "Stability of Thomson's configurations of vortices on a sphere,"
+      <em>Regular and Chaotic Dynamics</em>, vol. 5, 2000.
+      (Contiene derivación moderna del teorema del eje intermedio.)
+    </li>
+    <li>
+      E. T. Whittaker,
+      <em>A Treatise on the Analytical Dynamics of Particles and Rigid Bodies</em>,
+      4.ª ed., cap. VI.
+      Cambridge University Press, 1944.
+      (Derivación clásica de la solución en funciones theta de Riemann.)
+    </li>
+  </ol>
+</section>
+
+</div><!-- /.paper -->
+</body>
+</html>

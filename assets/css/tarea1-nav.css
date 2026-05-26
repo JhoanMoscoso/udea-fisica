@@ -95,13 +95,13 @@ body { padding-top: 64px; }
   gap: 6px;
 }
 .site-breadcrumb a {
-  color: #4a5568;
+  color: #8892a4;
   text-decoration: none;
   transition: color 0.2s;
 }
 .site-breadcrumb a:hover { color: #68ff00; }
 .site-breadcrumb .crumb-sep { color: #1f2d42; }
-.site-breadcrumb .crumb-current { color: #8892a4; }
+.site-breadcrumb .crumb-current { color: #68ff00; }
 
 /* Offset the page content for both nav + breadcrumb */
 body { padding-top: 96px; }

@@ -1,0 +1,299 @@
+/* ══════════════════════════════════════════════════════════════
+   sim-kapitza.css — Estilos de la simulación del Péndulo de Kapitza
+   Usado por: tema1-osciladores.html (inline sim, scoped a .sim-dark)
+══════════════════════════════════════════════════════════════ */
+
+/* ─── DARK BAND override (inline sim, sin iframe) ─────────── */
+.sim-band {
+  padding: 0 0 24px;
+  line-height: normal;
+}
+
+/* ─── BASE .sim-dark ─────────────────────────────────────── */
+.sim-dark {
+  --s-bg:     #06090f;
+  --s-bg2:    #0d1117;
+  --s-bg3:    #161b27;
+  --s-border: #1f2d42;
+  --s-text:   #c9d1d9;
+  --s-dim:    #4a5568;
+  --s-cyan:   #58a6ff;
+  --s-green:  #3fb950;
+  --s-red:    #f85149;
+  --s-orange: #e3b341;
+  --s-white:  #e6edf3;
+  --s-r:      8px;
+  color: var(--s-text);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ─── HEADER ─────────────────────────────────────────────── */
+.sim-dark .sim-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px 14px;
+  border-bottom: 1px solid var(--s-border);
+  background: linear-gradient(180deg, #0a0f1e 0%, var(--s-bg) 100%);
+}
+
+.sim-dark h1 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--s-white);
+  letter-spacing: -0.3px;
+}
+
+.sim-dark .sim-subtitle {
+  color: var(--paper);
+  font-size: 10.5px;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
+
+/* ─── BADGES ─────────────────────────────────────────────── */
+.sim-dark .badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 0.5px;
+  transition: all 0.4s ease;
+}
+.sim-dark .badge.stable   { color: var(--s-green);  border-color: var(--s-green);  background: rgba(63,185,80,0.08); }
+.sim-dark .badge.unstable { color: var(--s-red);    border-color: var(--s-red);    background: rgba(248,81,73,0.08); }
+.sim-dark .badge.boundary { color: var(--s-orange); border-color: var(--s-orange); background: rgba(227,179,65,0.08); }
+
+/* ─── LAYOUT PRINCIPAL ───────────────────────────────────── */
+.sim-dark .sim-main {
+  display: grid;
+  grid-template-columns: 1fr 370px;
+  gap: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+}
+
+.sim-dark .canvas-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-right: 16px;
+}
+
+.sim-dark .controls-col {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* ─── CANVAS WRAPPERS ────────────────────────────────────── */
+.sim-dark .canvas-wrap {
+  position: relative;
+  background: var(--s-bg2);
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-r);
+  overflow: hidden;
+}
+
+.sim-dark .canvas-label {
+  position: absolute;
+  top: 9px; left: 12px;
+  font-size: 9.5px;
+  color: var(--paper);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.sim-dark .canvas-overlay-br {
+  position: absolute;
+  bottom: 8px; right: 10px;
+  font-size: 9px;
+  color: var(--paper);
+  pointer-events: none;
+  z-index: 2;
+  text-align: right;
+  line-height: 1.8;
+}
+
+.sim-dark canvas { display: block; }
+
+/* ─── PANEL ──────────────────────────────────────────────── */
+.sim-dark .panel {
+  background: var(--s-bg2);
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-r);
+  padding: 16px;
+}
+
+.sim-dark .panel-title {
+  font-size: 9.5px;
+  color: var(--paper);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--s-border);
+}
+
+/* ─── SLIDERS ────────────────────────────────────────────── */
+.sim-dark .param-group { margin-bottom: 13px; }
+
+.sim-dark .param-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.sim-dark .param-name { color: var(--paper); font-size: 10.5px; }
+.sim-dark .param-sym  { color: var(--s-cyan); font-style: italic; font-size: 12px; margin-left: 4px; }
+.sim-dark .param-val  { color: var(--s-white); font-size: 11px; font-weight: 600; min-width: 78px; text-align: right; }
+
+.sim-dark input[type="range"] {
+  width: 100%; height: 3px;
+  -webkit-appearance: none; appearance: none;
+  background: var(--s-border);
+  border-radius: 2px; outline: none; cursor: pointer;
+}
+.sim-dark input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--s-cyan); border: 2px solid var(--s-bg2);
+  cursor: pointer; transition: transform 0.1s;
+}
+.sim-dark input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+
+/* ─── PRESETS ────────────────────────────────────────────── */
+.sim-dark .presets-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 14px 0 0;
+}
+
+.sim-dark .preset-btn {
+  padding: 7px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--s-border);
+  background: var(--s-bg3);
+  color: var(--paper);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.sim-dark .preset-btn:hover { border-color: var(--s-cyan); color: var(--s-cyan); }
+
+/* ─── CONDITION BOX ──────────────────────────────────────── */
+.sim-dark .condition-box {
+  margin-top: 14px;
+  padding: 11px 13px;
+  background: var(--s-bg3);
+  border-radius: 6px;
+  border: 1px solid var(--s-border);
+}
+
+.sim-dark .cond-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5px 0;
+  font-size: 11px;
+}
+.sim-dark .cond-label { color: var(--s-dim); font-size: 10.5px; }
+.sim-dark .cond-val   { color: var(--s-white); font-weight: 600; }
+
+.sim-dark .verdict-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 8px;
+  margin-top: 7px;
+  border-top: 1px solid var(--s-border);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: color 0.3s;
+}
+
+/* ─── BOTONES ────────────────────────────────────────────── */
+.sim-dark .btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.sim-dark button {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--s-border);
+  background: var(--s-bg3);
+  color: var(--s-text);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.sim-dark button:hover { border-color: var(--s-cyan); color: var(--s-cyan); }
+.sim-dark button.primary { border-color: var(--s-cyan); color: var(--s-cyan); background: rgba(88,166,255,0.06); }
+
+/* ─── CODE TOGGLE ────────────────────────────────────────── */
+.sim-dark .code-section {
+  max-width: 1120px;
+  margin: 18px auto 0;
+  padding: 0 20px;
+}
+
+.sim-dark .code-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--s-bg2);
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-r);
+  color: var(--s-dim);
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.sim-dark .code-toggle-btn:hover { border-color: var(--s-cyan); color: var(--s-text); }
+.sim-dark .code-icon { color: var(--s-cyan); font-size: 13px; }
+
+.sim-dark .code-container {
+  display: none;
+  margin-top: 8px;
+  background: var(--s-bg2);
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-r);
+  padding: 22px;
+  overflow: auto;
+  max-height: 650px;
+}
+.sim-dark .code-container.open { display: block; }
+
+.sim-dark pre {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--s-text);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* ─── SCROLLBAR (dark override) ──────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #0d1117; }
+::-webkit-scrollbar-thumb { background: #2a3548; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3b4d66; }

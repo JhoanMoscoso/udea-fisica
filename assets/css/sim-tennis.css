@@ -1,0 +1,308 @@
+/* ══════════════════════════════════════════════════════════════
+   sim-tennis.css — Estilos de la simulación Teorema del Eje Intermedio
+   Usado por: udea/mt2/tennis-racket.html (standalone, también como iframe)
+══════════════════════════════════════════════════════════════ */
+
+/* ─── RESET ─────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ─── VARIABLES ──────────────────────────────────────────── */
+:root {
+  --bg:      #06090f;
+  --bg2:     #0d1117;
+  --bg3:     #161b27;
+  --border:  #1f2d42;
+  --text:    #c9d1d9;
+  --dim:     #4a5568;
+  --cyan:    #58a6ff;
+  --green:   #3fb950;
+  --red:     #f85149;
+  --orange:  #e3b341;
+  --white:   #e6edf3;
+  --r:       8px;
+  --mono:    'JetBrains Mono', 'Courier New', monospace;
+  --title:   'Syne', sans-serif;
+  --ax1:     #3fb950;
+  --ax2:     #f85149;
+  --ax3:     #58a6ff;
+}
+
+/* ─── BASE ───────────────────────────────────────────────── */
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ─── HEADER ─────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 28px 14px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0a0f1e 0%, var(--bg) 100%);
+}
+
+h1 {
+  font-family: var(--title);
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
+
+.subtitle {
+  color: var(--text);
+  font-size: 10.5px;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
+
+.badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 0.5px;
+  transition: all 0.4s ease;
+}
+.badge.stable   { color: var(--green);  border-color: var(--green);  background: rgba(63,185,80,0.08); }
+.badge.unstable { color: var(--red);    border-color: var(--red);    background: rgba(248,81,73,0.08); }
+.badge.boundary { color: var(--orange); border-color: var(--orange); background: rgba(227,179,65,0.08); }
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+main {
+  display: grid;
+  grid-template-columns: 1fr 370px;
+  gap: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+}
+
+.canvas-col  { display: flex; flex-direction: column; gap: 14px; padding-right: 16px; }
+.controls-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ─── CANVAS WRAPPERS ────────────────────────────────────── */
+.canvas-wrap {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.canvas-label {
+  position: absolute;
+  top: 9px; left: 12px;
+  font-size: 9.5px;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.canvas-overlay-br {
+  position: absolute;
+  bottom: 8px; right: 10px;
+  font-size: 9px;
+  color: var(--white);
+  pointer-events: none;
+  z-index: 2;
+  text-align: right;
+  line-height: 1.8;
+}
+
+canvas { display: block; }
+
+/* ─── PANEL / CONTROLES ──────────────────────────────────── */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+}
+
+.panel-title {
+  font-size: 9.5px;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ─── SLIDERS ────────────────────────────────────────────── */
+.param-group { margin-bottom: 13px; }
+
+.param-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.param-name { color: var(--white); font-size: 10.5px; }
+.param-sym  { font-style: italic; font-size: 12px; margin-left: 4px; }
+.param-val  { color: var(--white); font-size: 11px; font-weight: 600; min-width: 60px; text-align: right; }
+
+input[type="range"] {
+  width: 100%; height: 3px;
+  -webkit-appearance: none; appearance: none;
+  background: var(--border);
+  border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--cyan); border: 2px solid var(--bg2);
+  cursor: pointer; transition: transform 0.1s;
+}
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+
+.sl-ax1::-webkit-slider-thumb { background: var(--ax1); }
+.sl-ax2::-webkit-slider-thumb { background: var(--ax2); }
+.sl-ax3::-webkit-slider-thumb { background: var(--ax3); }
+
+/* ─── PRESETS ────────────────────────────────────────────── */
+.presets-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 14px 0 0;
+}
+
+.preset-btn {
+  padding: 7px 4px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.preset-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ─── CONDITION BOX ──────────────────────────────────────── */
+.condition-box {
+  margin-top: 14px;
+  padding: 11px 13px;
+  background: var(--bg3);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.cond-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5px 0;
+  font-size: 11px;
+}
+.cond-label { color: var(--white); font-size: 10.5px; }
+.cond-val   { color: var(--white); font-weight: 600; }
+
+.verdict-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 8px;
+  margin-top: 7px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: color 0.3s;
+}
+
+/* ─── LEYENDA DE EJES ────────────────────────────────────── */
+.axis-legend { display: flex; gap: 12px; margin-top: 10px; justify-content: center; }
+.ax-tag { font-size: 9.5px; display: flex; align-items: center; gap: 4px; }
+.ax-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ─── BOTONES ────────────────────────────────────────────── */
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+
+button {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+button:hover { border-color: var(--cyan); color: var(--cyan); }
+button.primary { border-color: var(--cyan); color: var(--cyan); background: rgba(88,166,255,0.06); }
+
+/* ─── SPEED SLIDER ───────────────────────────────────────── */
+.speed-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 10.5px;
+  color: var(--white);
+}
+.speed-row input { flex: 1; }
+
+/* ─── CÓDIGO FUENTE ──────────────────────────────────────── */
+.code-section { max-width: 1120px; margin: 18px auto 40px; padding: 0 20px; }
+
+.code-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.code-toggle-btn:hover { border-color: var(--cyan); color: var(--text); }
+.code-icon { color: var(--cyan); font-size: 13px; }
+
+.code-container {
+  display: none;
+  margin-top: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px;
+  overflow: auto;
+  max-height: 650px;
+}
+.code-container.open { display: block; }
+
+pre {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--text);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #2a3548; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3b4d66; }

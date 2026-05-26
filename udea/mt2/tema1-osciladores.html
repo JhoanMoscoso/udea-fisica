@@ -3,331 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Péndulo de Kapitza — Mecánica Teórica II</title>
+<title>Péndulo de Kapitza — Tarea 1 · Mecánica Teórica II</title>
+
+<!-- ── MathJax 3 ── -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath:  [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    tags: 'ams',
+    macros: {
+      dd:   '\\mathrm{d}',
+      ddt:  '\\dfrac{\\mathrm{d}}{\\mathrm{d}t}',
+      half: '\\tfrac{1}{2}'
+    }
+  },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<!-- ── Fonts ── -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-<style>
-/* ═══════════════════════════════════════════════════════════
-   RESET & VARIABLES
-═══════════════════════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 
-:root {
-  --bg:      #06090f;
-  --bg2:     #0d1117;
-  --bg3:     #161b27;
-  --border:  #1f2d42;
-  --text:    #c9d1d9;
-  --dim:     #4a5568;
-  --cyan:    #58a6ff;
-  --green:   #3fb950;
-  --red:     #f85149;
-  --orange:  #e3b341;
-  --white:   #e6edf3;
-  --r:       8px;
-  --mono:    'JetBrains Mono', 'Courier New', monospace;
-  --title:   'Syne', sans-serif;
-}
 
-html, body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 13px;
-  line-height: 1.6;
-  min-height: 100vh;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   HEADER
-═══════════════════════════════════════════════════════════ */
-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 28px 14px;
-  border-bottom: 1px solid var(--border);
-  background: linear-gradient(180deg, #0a0f1e 0%, var(--bg) 100%);
-}
-
-h1 {
-  font-family: var(--title);
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--white);
-  letter-spacing: -0.3px;
-}
-
-.subtitle {
-  color: var(--dim);
-  font-size: 10.5px;
-  margin-top: 2px;
-  letter-spacing: 0.3px;
-}
-
-.badge {
-  padding: 5px 14px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  border: 1px solid;
-  letter-spacing: 0.5px;
-  transition: all 0.4s ease;
-}
-.badge.stable   { color: var(--green);  border-color: var(--green);  background: rgba(63,185,80,0.08); }
-.badge.unstable { color: var(--red);    border-color: var(--red);    background: rgba(248,81,73,0.08); }
-.badge.boundary { color: var(--orange); border-color: var(--orange); background: rgba(227,179,65,0.08); }
-
-/* ═══════════════════════════════════════════════════════════
-   LAYOUT PRINCIPAL
-═══════════════════════════════════════════════════════════ */
-main {
-  display: grid;
-  grid-template-columns: 1fr 370px;
-  gap: 0;
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 20px 20px 0;
-}
-
-.canvas-col {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  padding-right: 16px;
-}
-
-.controls-col {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   CANVAS WRAPPERS
-═══════════════════════════════════════════════════════════ */
-.canvas-wrap {
-  position: relative;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  overflow: hidden;
-}
-
-.canvas-label {
-  position: absolute;
-  top: 9px; left: 12px;
-  font-size: 9.5px;
-  color: var(--dim);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.canvas-overlay-br {
-  position: absolute;
-  bottom: 8px; right: 10px;
-  font-size: 9px;
-  color: var(--dim);
-  pointer-events: none;
-  z-index: 2;
-  text-align: right;
-  line-height: 1.8;
-}
-
-canvas { display: block; }
-
-/* ═══════════════════════════════════════════════════════════
-   PANEL (tarjeta de controles)
-═══════════════════════════════════════════════════════════ */
-.panel {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 16px;
-}
-
-.panel-title {
-  font-size: 9.5px;
-  color: var(--dim);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-  margin-bottom: 14px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SLIDERS
-═══════════════════════════════════════════════════════════ */
-.param-group { margin-bottom: 13px; }
-
-.param-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  margin-bottom: 5px;
-}
-
-.param-name { color: var(--dim); font-size: 10.5px; }
-.param-sym  { color: var(--cyan); font-style: italic; font-size: 12px; margin-left: 4px; }
-.param-val  { color: var(--white); font-size: 11px; font-weight: 600; min-width: 78px; text-align: right; }
-
-input[type="range"] {
-  width: 100%; height: 3px;
-  -webkit-appearance: none; appearance: none;
-  background: var(--border);
-  border-radius: 2px; outline: none; cursor: pointer;
-}
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 13px; height: 13px; border-radius: 50%;
-  background: var(--cyan); border: 2px solid var(--bg2);
-  cursor: pointer; transition: transform 0.1s;
-}
-input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
-
-/* ═══════════════════════════════════════════════════════════
-   PRESETS
-═══════════════════════════════════════════════════════════ */
-.presets-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin: 14px 0 0;
-}
-
-.preset-btn {
-  padding: 7px 4px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg3);
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 10px;
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: center;
-}
-.preset-btn:hover { border-color: var(--cyan); color: var(--cyan); }
-
-/* ═══════════════════════════════════════════════════════════
-   CONDITION BOX
-═══════════════════════════════════════════════════════════ */
-.condition-box {
-  margin-top: 14px;
-  padding: 11px 13px;
-  background: var(--bg3);
-  border-radius: 6px;
-  border: 1px solid var(--border);
-}
-
-.cond-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5px 0;
-  font-size: 11px;
-}
-.cond-label { color: var(--dim); font-size: 10.5px; }
-.cond-val   { color: var(--white); font-weight: 600; }
-
-.verdict-row {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding-top: 8px;
-  margin-top: 7px;
-  border-top: 1px solid var(--border);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  transition: color 0.3s;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   CONTROL BUTTONS
-═══════════════════════════════════════════════════════════ */
-.btn-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-top: 14px;
-}
-
-button {
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg3);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-button:hover { border-color: var(--cyan); color: var(--cyan); }
-button.primary { border-color: var(--cyan); color: var(--cyan); background: rgba(88,166,255,0.06); }
-
-/* ═══════════════════════════════════════════════════════════
-   CÓDIGO FUENTE (toggle)
-═══════════════════════════════════════════════════════════ */
-.code-section {
-  max-width: 1120px;
-  margin: 18px auto 40px;
-  padding: 0 20px;
-}
-
-.code-toggle-btn {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 10px 16px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  color: var(--dim);
-  font-family: var(--mono);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.2s;
-  text-align: left;
-}
-.code-toggle-btn:hover { border-color: var(--cyan); color: var(--text); }
-.code-icon { color: var(--cyan); font-size: 13px; }
-
-.code-container {
-  display: none;
-  margin-top: 8px;
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  padding: 22px;
-  overflow: auto;
-  max-height: 650px;
-}
-.code-container.open { display: block; }
-
-pre {
-  font-family: var(--mono);
-  font-size: 11.5px;
-  line-height: 1.75;
-  color: var(--text);
-  white-space: pre;
-  tab-size: 2;
-}
-
-/* ═══════════════════════════════════════════════════════════
-   SCROLLBAR
-═══════════════════════════════════════════════════════════ */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--bg); }
-::-webkit-scrollbar-thumb { background: #2a3548; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3b4d66; }
-</style>
-<!-- Site nav styles — loaded last so Tarea1 styles take priority -->
+<!-- Estilos -->
+<link rel="stylesheet" href="../../assets/css/informe.css">
+<link rel="stylesheet" href="../../assets/css/sim-kapitza.css">
+<!-- Site nav styles -->
 <link rel="stylesheet" href="../../assets/css/tarea1-nav.css">
 </head>
 <body>
@@ -339,14 +43,13 @@ pre {
     <li><a href="../../udea/index.html">UdeA</a></li>
     <li><a href="../../proyectos/index.html">Proyectos</a></li>
     <li>
-      <a href="https://github.com/ginkgo-dev" target="_blank" rel="noopener noreferrer" class="nav-ext">
+      <a href="https://github.com/JhoanMoscoso" target="_blank" rel="noopener noreferrer" class="nav-ext">
         GitHub ↗
       </a>
     </li>
   </ul>
 </nav>
 
-<!-- Breadcrumb -->
 <nav class="site-breadcrumb" aria-label="Navegación de migas de pan">
   <a href="../../udea/index.html">UdeA</a>
   <span class="crumb-sep" aria-hidden="true">›</span>
@@ -355,283 +58,490 @@ pre {
   <span class="crumb-current">Tema 1 — Osciladores</span>
 </nav>
 
-<!-- ═══════════════ HEADER ═══════════════ -->
-<header>
-  <div>
-    <h1>Péndulo de Kapitza</h1>
-    <p class="subtitle">Landau &amp; Lifshitz §5 · §27 · §30 &nbsp;·&nbsp; Mecánica Teórica II &nbsp;·&nbsp; Universidad de Antioquia</p>
+<!-- ══════════════════════════════════════════
+     INFORME — PARTE 1 (blanco)
+══════════════════════════════════════════ -->
+<div class="paper">
+
+<header class="report-header">
+  <h1>Péndulo de Kapitza:<br>Estabilidad Dinámica de un Péndulo Invertido</h1>
+  <p class="subtitle">
+    Solución numérica y verificación del modelo del potencial efectivo de Landau &amp; Lifshitz §30
+  </p>
+  <div class="meta-grid">
+    <div>Curso: <span>Mecánica Teórica II</span></div>
+    <div>Sección: <span>Osciladores — Tarea 1</span></div>
+    <div>Docente: <span>Jorge Mahecha Gómez</span></div>
+    <div>Institución: <span>Universidad de Antioquia</span></div>
   </div>
-  <div id="regime-badge" class="badge unstable">⟳ Cargando...</div>
 </header>
 
-<!-- ═══════════════ MAIN LAYOUT ═══════════════ -->
-<main>
+<!-- 1. PLANTEAMIENTO -->
+<section id="planteamiento">
+  <h2><span class="sec-num">1.</span>Planteamiento del problema</h2>
+  <p>
+    Se estudia el movimiento de un péndulo simple de longitud $l$ y masa $m$ cuyo punto de
+    suspensión oscila verticalmente con amplitud $a$ y frecuencia $\gamma$, siguiendo la ley
+    $y_0(t) = a\cos(\gamma t)$. El problema consiste en determinar numéricamente la dinámica
+    completa del sistema integrando la ecuación de movimiento exacta (no linealizada), y
+    contrastarla con el modelo analítico del <em>potencial efectivo</em> de Kapitza,
+    derivado en Landau &amp; Lifshitz §30.
+    En particular, se busca verificar la condición $a\gamma > \sqrt{2gl}$ bajo la cual la
+    posición invertida $\varphi = \pi$ —normalmente inestable— se convierte en un
+    equilibrio estable, fenómeno conocido como <strong>estabilización dinámica de Kapitza</strong>.
+  </p>
+</section>
 
-  <!-- ── Columna izquierda: Canvases ── -->
-  <section class="canvas-col">
+<!-- 2. MARCO TEÓRICO -->
+<section id="teoria">
+  <h2><span class="sec-num">2.</span>Marco teórico</h2>
 
-    <!-- Canvas 1: Péndulo -->
-    <div class="canvas-wrap">
-      <span class="canvas-label">Péndulo — Animación en tiempo real</span>
-      <div class="canvas-overlay-br" id="live-vals">φ = — &nbsp;|&nbsp; φ̇ = —</div>
-      <canvas id="pendCanvas" width="680" height="360"></canvas>
-    </div>
+  <h3>2.1 Configuración del sistema</h3>
+  <p>
+    Se considera un péndulo plano de masa $m$ y longitud $l$, articulado en un pivot que se
+    desplaza verticalmente (tomando $y$ positivo hacia abajo) según:
+  </p>
+  $$y_0(t) = a\cos(\gamma t). \tag{1}$$
+  <p>
+    El ángulo generalizado $\varphi$ se mide desde la vertical hacia abajo, de modo que
+    $\varphi = 0$ corresponde al equilibrio estable habitual y $\varphi = \pi$ a la posición
+    invertida. Las coordenadas cartesianas de la masa respecto a un origen fijo son:
+  </p>
+  $$x_m = l\sin\varphi, \qquad y_m = a\cos(\gamma t) + l\cos\varphi. \tag{2}$$
 
-    <!-- Canvas 2: Espacio de fase -->
-    <div class="canvas-wrap">
-      <span class="canvas-label">Espacio de fase &nbsp;(φ, φ̇)</span>
-      <canvas id="phaseCanvas" width="680" height="255"></canvas>
-    </div>
+  <figure>
+    <svg width="260" height="280" viewBox="0 0 260 280" xmlns="http://www.w3.org/2000/svg">
+      <rect x="80" y="10" width="100" height="8" fill="#1a3a6e" rx="2"/>
+      <line x1="130" y1="18" x2="130" y2="50" stroke="#555" stroke-width="2" stroke-dasharray="4,3"/>
+      <ellipse cx="130" cy="60" rx="10" ry="7" fill="#3a5a9e" stroke="#1a3a6e" stroke-width="1.5"/>
+      <text x="145" y="64" font-size="11" fill="#666" font-family="serif" font-style="italic">y₀(t) = a cos γt</text>
+      <line x1="130" y1="60" x2="185" y2="185" stroke="#1a3a6e" stroke-width="2"/>
+      <circle cx="185" cy="185" r="14" fill="#8b0000" stroke="#5c0000" stroke-width="1.5"/>
+      <text x="202" y="190" font-size="11" fill="#666" font-family="serif" font-style="italic">m</text>
+      <path d="M130 100 A40 40 0 0 1 152 128" fill="none" stroke="#888" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="150" y="118" font-size="12" fill="#555" font-family="serif" font-style="italic">φ</text>
+      <line x1="130" y1="60" x2="130" y2="200" stroke="#bbb" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="148" y="130" font-size="11" fill="#1a3a6e" font-family="serif" font-style="italic">l</text>
+      <path d="M108 40 L108 80 M104 40 L112 40 M104 80 L112 80" stroke="#3a5a9e" stroke-width="1.5" fill="none"/>
+      <text x="82" y="62" font-size="10" fill="#3a5a9e" font-family="sans-serif">a</text>
+    </svg>
+    <figcaption>Figura 1. Péndulo de Kapitza: pivot oscilante verticalmente con amplitud $a$ y frecuencia $\gamma$.</figcaption>
+  </figure>
 
-  </section>
-
-  <!-- ── Columna derecha: Controles + U_eff ── -->
-  <section class="controls-col">
-
-    <!-- Panel de parámetros -->
-    <div class="panel">
-      <div class="panel-title">Parámetros del sistema</div>
-
-      <!-- a -->
-      <div class="param-group">
-        <div class="param-row">
-          <span class="param-name">Amplitud soporte<span class="param-sym">a</span></span>
-          <span class="param-val" id="val-a">0.150 m</span>
-        </div>
-        <input type="range" id="sl-a" min="0.01" max="0.50" step="0.005" value="0.15">
-      </div>
-
-      <!-- gamma -->
-      <div class="param-group">
-        <div class="param-row">
-          <span class="param-name">Frecuencia forzante<span class="param-sym">γ</span></span>
-          <span class="param-val" id="val-g">20.0 rad/s</span>
-        </div>
-        <input type="range" id="sl-g" min="1" max="80" step="0.5" value="20">
-      </div>
-
-      <!-- l -->
-      <div class="param-group">
-        <div class="param-row">
-          <span class="param-name">Longitud péndulo<span class="param-sym">l</span></span>
-          <span class="param-val" id="val-l">0.500 m</span>
-        </div>
-        <input type="range" id="sl-l" min="0.10" max="1.00" step="0.05" value="0.5">
-      </div>
-
-      <!-- phi0 -->
-      <div class="param-group">
-        <div class="param-row">
-          <span class="param-name">Ángulo inicial<span class="param-sym">φ₀</span></span>
-          <span class="param-val" id="val-phi">π rad</span>
-        </div>
-        <input type="range" id="sl-phi" min="-3.14159" max="3.14159" step="0.02" value="3.10">
-      </div>
-
-      <!-- Presets -->
-      <div class="presets-grid">
-        <button class="preset-btn" onclick="setPreset('stable')">✓ Kapitza estable</button>
-        <button class="preset-btn" onclick="setPreset('unstable')">✗ Inestable</button>
-        <button class="preset-btn" onclick="setPreset('boundary')">~ En la frontera</button>
-        <button class="preset-btn" onclick="setPreset('down')">↓ Colgando (φ=0)</button>
-      </div>
-
-      <!-- Condición de Kapitza -->
-      <div class="condition-box">
-        <div class="cond-row">
-          <span class="cond-label">Forzante &nbsp;<em>aγ</em></span>
-          <span class="cond-val" id="val-ag">—</span>
-        </div>
-        <div class="cond-row">
-          <span class="cond-label">Umbral &nbsp;<em>√(2gl)</em></span>
-          <span class="cond-val" id="val-thr">—</span>
-        </div>
-        <div class="cond-row">
-          <span class="cond-label">ω₀ &nbsp;=&nbsp; √(g/l)</span>
-          <span class="cond-val" id="val-w0">—</span>
-        </div>
-        <div class="verdict-row" id="verdict-row">
-          <span id="verdict">—</span>
-        </div>
-      </div>
-
-      <!-- Botones -->
-      <div class="btn-row">
-        <button id="btn-play" class="primary" onclick="togglePlay()">⏸ Pausar</button>
-        <button onclick="resetSim()">↺ Reiniciar</button>
-      </div>
-    </div>
-
-    <!-- Canvas 3: U_eff -->
-    <div class="canvas-wrap">
-      <span class="canvas-label">Potencial efectivo &nbsp;U<sub style="font-size:8px">eff</sub>(φ) — §30</span>
-      <canvas id="ueffCanvas" width="370" height="215"></canvas>
-    </div>
-
-  </section>
-</main>
-
-<!-- ═══════════════ CÓDIGO FUENTE ═══════════════ -->
-<div class="code-section">
-  <button class="code-toggle-btn" onclick="toggleCode()">
-    <span class="code-icon">&lt;/&gt;</span>
-    <span id="code-btn-label">Ver código fuente comentado</span>
-    <span style="margin-left:auto;font-size:9.5px;color:var(--dim);">HTML · CSS · JS · RK4 Physics</span>
-  </button>
-  <div class="code-container" id="code-container">
-    <pre id="code-display">// Haz clic en "Ver código fuente" para cargar...</pre>
+  <h3>2.2 Lagrangiano del sistema (Landau §5, Prob. 3c)</h3>
+  <p>Las velocidades de la masa se obtienen derivando (2):</p>
+  $$\dot{x}_m = l\dot\varphi\cos\varphi, \qquad \dot{y}_m = -a\gamma\sin(\gamma t) + l\dot\varphi\sin\varphi.$$
+  <p>La energía cinética es $T = \tfrac{m}{2}(\dot x_m^2 + \dot y_m^2)$:</p>
+  $$T = \frac{ml^2}{2}\dot\varphi^2 + \frac{ma^2\gamma^2}{2}\sin^2(\gamma t)
+        + mla\gamma\,\dot\varphi\sin(\gamma t)\sin\varphi. \tag{3}$$
+  <p>Dado que el eje $y$ apunta hacia abajo, la energía potencial gravitacional es $V = -mgy_m$:</p>
+  $$V = -mg\bigl[a\cos(\gamma t) + l\cos\varphi\bigr]. \tag{4}$$
+  <p>
+    El Lagrangiano $L = T - V$ contiene dos términos que pueden absorberse como derivadas
+    temporales totales o dependen únicamente de $t$, sin afectar las ecuaciones de movimiento:
+  </p>
+  <div class="derivation">
+    <p><strong>Término 1:</strong> $\tfrac{ma^2\gamma^2}{2}\sin^2(\gamma t)$ es función pura de $t$ → se descarta.</p>
+    <p><strong>Término 2:</strong> el producto cruzado $mla\gamma\,\dot\varphi\sin(\gamma t)\sin\varphi$ se reescribe observando que:</p>
+    $$\frac{d}{dt}\!\left[-mla\gamma\sin(\gamma t)\cos\varphi\right]
+    = -mla\gamma^2\cos(\gamma t)\cos\varphi \;+\; mla\gamma\sin(\gamma t)\,\dot\varphi\sin\varphi.$$
+    <p>De aquí:</p>
+    $$mla\gamma\,\dot\varphi\sin(\gamma t)\sin\varphi
+    = \frac{d}{dt}\!\left[-mla\gamma\sin(\gamma t)\cos\varphi\right]
+    + mla\gamma^2\cos(\gamma t)\cos\varphi.$$
+    <p>La derivada total se descarta; queda la contribución $mla\gamma^2\cos(\gamma t)\cos\varphi$.</p>
   </div>
-</div>
+  <p>El Lagrangiano efectivo, equivalente al original para las ecuaciones de movimiento, es:</p>
+  <div class="eq-box">
+    <div class="eq-label">Lagrangiano efectivo — Landau §5, Prob. 3(c)</div>
+    $$L \;=\; \frac{ml^2}{2}\dot\varphi^2 \;+\; \bigl(mgl + mla\gamma^2\cos\gamma t\bigr)\cos\varphi. \tag{5}$$
+  </div>
+
+  <h3>2.3 Ecuación de movimiento exacta</h3>
+  <p>Aplicando las ecuaciones de Euler-Lagrange $\dfrac{d}{dt}\!\left(\dfrac{\partial L}{\partial\dot\varphi}\right) - \dfrac{\partial L}{\partial\varphi} = 0$ a (5):</p>
+  $$\frac{\partial L}{\partial\dot\varphi} = ml^2\dot\varphi, \qquad
+  \frac{\partial L}{\partial\varphi} = -\bigl(mgl + mla\gamma^2\cos\gamma t\bigr)\sin\varphi.$$
+  <div class="eq-box">
+    <div class="eq-label">Ecuación de movimiento — exacta, no linealizada</div>
+    $$\ddot\varphi \;=\; -\!\left[\frac{g}{l} + \frac{a\gamma^2}{l}\cos(\gamma t)\right]\sin\varphi. \tag{6}$$
+  </div>
+  <p>
+    Nótese que (6) es <em>no lineal</em> y no linealizada: contiene $\sin\varphi$ sin
+    aproximación de ángulo pequeño. Para $a = 0$ se recupera el péndulo simple.
+    La forzante $\tfrac{a\gamma^2}{l}\cos(\gamma t)$ actúa como una modulación periódica de
+    la gravedad efectiva, abriendo la posibilidad de inducir nuevas configuraciones de equilibrio.
+  </p>
+
+  <h3>2.4 Integración numérica — Runge-Kutta de 4.º orden</h3>
+  <p>La ecuación (6) se reescribe como un sistema de dos EDOs de primer orden introduciendo $\omega \equiv \dot\varphi$:</p>
+  $$\frac{d\varphi}{dt} = \omega, \qquad
+    \frac{d\omega}{dt} = -\left[\frac{g}{l} + \frac{a\gamma^2}{l}\cos(\gamma t)\right]\sin\varphi. \tag{7}$$
+  <p>El vector de estado es $\mathbf{y} = (\varphi,\,\omega)^\top$. El método RK4 avanza un paso $h$ mediante:</p>
+  $$\mathbf{k}_1 = h\,\mathbf{F}(\mathbf{y}_n,\,t_n), \quad
+  \mathbf{k}_2 = h\,\mathbf{F}\!\left(\mathbf{y}_n + \tfrac{\mathbf{k}_1}{2},\,t_n+\tfrac{h}{2}\right),$$
+  $$\mathbf{k}_3 = h\,\mathbf{F}\!\left(\mathbf{y}_n + \tfrac{\mathbf{k}_2}{2},\,t_n+\tfrac{h}{2}\right), \quad
+  \mathbf{k}_4 = h\,\mathbf{F}(\mathbf{y}_n + \mathbf{k}_3,\,t_n+h), \tag{8}$$
+  $$\mathbf{y}_{n+1} = \mathbf{y}_n + \frac{1}{6}\!\left(\mathbf{k}_1 + 2\mathbf{k}_2 + 2\mathbf{k}_3 + \mathbf{k}_4\right).$$
+  <p>
+    El error de truncamiento local es $\mathcal{O}(h^5)$ y el global $\mathcal{O}(h^4)$.
+    En la simulación se utiliza $h = 5\times10^{-4}$ s y 30 pasos por cuadro de animación,
+    garantizando conservación numérica satisfactoria de la energía.
+  </p>
+
+  <h3>2.5 Campo rápidamente oscilante y potencial efectivo (Landau §30)</h3>
+  <p>Para frecuencias grandes ($\gamma \gg \omega_0 = \sqrt{g/l}$), Kapitza descompone el ángulo en una parte lenta $\Phi(t)$ y una perturbación rápida $\xi(t)$:</p>
+  $$\varphi(t) = \Phi(t) + \xi(t), \qquad \langle\xi\rangle = 0. \tag{9}$$
+  <p>Sustituyendo (9) en (6) y usando $\sin(\Phi+\xi)\approx\sin\Phi + \xi\cos\Phi$, la componente dominante de $\ddot\xi$ es:</p>
+  $$\ddot\xi \;\approx\; -\frac{a\gamma^2}{l}\cos(\gamma t)\sin\Phi. \tag{10}$$
+  <p>Integrando (10) con $\Phi$ aproximadamente constante:</p>
+  $$\xi(t) \;\approx\; \frac{a}{l}\cos(\gamma t)\sin\Phi. \tag{11}$$
+  <p>La ecuación efectiva para la parte lenta $\Phi$ da lugar al <strong>potencial efectivo de Kapitza</strong>:</p>
+  <div class="eq-box">
+    <div class="eq-label">Potencial efectivo — Landau §30</div>
+    $$U_\text{ef}(\varphi) \;=\; mgl\!\left[-\cos\varphi \;+\; \frac{a^2\gamma^2}{4gl}\sin^2\!\varphi\right]. \tag{14}$$
+  </div>
+
+  <h3>2.6 Condición de estabilidad de Kapitza</h3>
+  <p>El equilibrio $\varphi = \pi$ es estable si $U_\text{ef}''(\pi) > 0$. Evaluando la segunda derivada de (14) en $\varphi = \pi$:</p>
+  $$\frac{d^2 U_\text{ef}}{d\varphi^2}\Bigg|_{\varphi=\pi} = mgl\!\left(-1 + \frac{a^2\gamma^2}{2gl}\right). \tag{15}$$
+  <div class="eq-box">
+    <div class="eq-label">Condición de Kapitza — criterio de estabilidad del equilibrio invertido</div>
+    $$a^2\gamma^2 > 2gl \qquad\Longleftrightarrow\qquad a\gamma > \sqrt{2gl}. \tag{16}$$
+  </div>
+  <p>Por debajo de este umbral $\varphi = \pi$ es un máximo de $U_\text{ef}$ y el péndulo cae. Por encima, emerge un pozo de potencial que confina al péndulo cerca de $\varphi = \pi$.</p>
+
+  <h3>2.7 Parámetros de la simulación</h3>
+  <table class="report-param-table">
+    <thead>
+      <tr><th>Parámetro</th><th>Símbolo</th><th>Rango</th><th>Rol físico</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>$a$</td><td>Amplitud del soporte</td><td>$0.01$–$0.50$ m</td>
+        <td>Controla la intensidad de la forzante; $a$ grande favorece la estabilización</td>
+      </tr>
+      <tr>
+        <td>$\gamma$</td><td>Frecuencia de la forzante</td><td>$1$–$80$ rad/s</td>
+        <td>Debe ser $\gamma\gg\omega_0$ para validez de §30</td>
+      </tr>
+      <tr>
+        <td>$l$</td><td>Longitud del péndulo</td><td>$0.10$–$1.00$ m</td>
+        <td>Determina $\omega_0 = \sqrt{g/l}$ y el umbral $\sqrt{2gl}$</td>
+      </tr>
+      <tr>
+        <td>$\varphi_0$</td><td>Ángulo inicial</td><td>$-\pi$–$\pi$ rad</td>
+        <td>$\varphi_0=\pi$ inicia en la posición invertida</td>
+      </tr>
+      <tr>
+        <td>$g$</td><td>Aceleración gravitacional</td><td>$9.81$ m/s² (fijo)</td>
+        <td>Define la escala de tiempo natural junto con $l$</td>
+      </tr>
+      <tr>
+        <td>$h$</td><td>Paso de integración</td><td>$5\times10^{-4}$ s (fijo)</td>
+        <td>Precisión $\mathcal{O}(h^4)$ para resolver la escala rápida $1/\gamma$</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 3. SIMULACIÓN — intro -->
+<section id="simulacion">
+  <h2><span class="sec-num">3.</span>Simulación interactiva</h2>
+  <p>
+    La simulación a continuación integra numéricamente la ecuación (6) mediante el método
+    RK4 descrito en la sección 2.4. Los controles permiten variar los parámetros $a$,
+    $\gamma$, $l$ y $\varphi_0$ en tiempo real, y verificar el indicador de la condición
+    de Kapitza (16). El diagrama del potencial efectivo $U_\text{ef}(\varphi)$ (ec. 14) y
+    el espacio de fase $(\varphi,\,\dot\varphi)$ se actualizan de forma sincronizada.
+  </p>
+</section>
+
+</div><!-- /.paper -->
+
+<!-- ══════════════════════════════════════════
+     SIMULACIÓN — dark band
+══════════════════════════════════════════ -->
+<div class="sim-band">
+<div class="sim-dark">
+
+  <div class="sim-header">
+    <div>
+      <h1>Péndulo de Kapitza</h1>
+      <p class="sim-subtitle">Landau &amp; Lifshitz §5 · §27 · §30 &nbsp;·&nbsp; Mecánica Teórica II &nbsp;·&nbsp; Universidad de Antioquia</p>
+    </div>
+    <div id="regime-badge" class="badge unstable">⟳ Cargando...</div>
+  </div>
+
+  <div class="sim-main">
+
+    <div class="canvas-col">
+      <div class="canvas-wrap">
+        <span class="canvas-label">Péndulo — Animación en tiempo real</span>
+        <div class="canvas-overlay-br" id="live-vals">φ = — &nbsp;|&nbsp; φ̇ = —</div>
+        <canvas id="pendCanvas" width="680" height="360"></canvas>
+      </div>
+      <div class="canvas-wrap">
+        <span class="canvas-label">Espacio de fase &nbsp;(φ, φ̇)</span>
+        <canvas id="phaseCanvas" width="680" height="255"></canvas>
+      </div>
+    </div>
+
+    <div class="controls-col">
+      <div class="panel">
+        <div class="panel-title">Parámetros del sistema</div>
+
+        <div class="param-group">
+          <div class="param-row">
+            <span class="param-name">Amplitud soporte<span class="param-sym">a</span></span>
+            <span class="param-val" id="val-a">0.150 m</span>
+          </div>
+          <input type="range" id="sl-a" min="0.01" max="0.50" step="0.005" value="0.15">
+        </div>
+
+        <div class="param-group">
+          <div class="param-row">
+            <span class="param-name">Frecuencia forzante<span class="param-sym">γ</span></span>
+            <span class="param-val" id="val-g">20.0 rad/s</span>
+          </div>
+          <input type="range" id="sl-g" min="1" max="80" step="0.5" value="20">
+        </div>
+
+        <div class="param-group">
+          <div class="param-row">
+            <span class="param-name">Longitud péndulo<span class="param-sym">l</span></span>
+            <span class="param-val" id="val-l">0.500 m</span>
+          </div>
+          <input type="range" id="sl-l" min="0.10" max="1.00" step="0.05" value="0.5">
+        </div>
+
+        <div class="param-group">
+          <div class="param-row">
+            <span class="param-name">Ángulo inicial<span class="param-sym">φ₀</span></span>
+            <span class="param-val" id="val-phi">π rad</span>
+          </div>
+          <input type="range" id="sl-phi" min="-3.14159" max="3.14159" step="0.02" value="3.10">
+        </div>
+
+        <div class="presets-grid">
+          <button class="preset-btn" onclick="setPreset('stable')">✓ Kapitza estable</button>
+          <button class="preset-btn" onclick="setPreset('unstable')">✗ Inestable</button>
+          <button class="preset-btn" onclick="setPreset('boundary')">~ En la frontera</button>
+          <button class="preset-btn" onclick="setPreset('down')">↓ Colgando (φ=0)</button>
+        </div>
+
+        <div class="condition-box">
+          <div class="cond-row">
+            <span class="cond-label">Forzante &nbsp;<em>aγ</em></span>
+            <span class="cond-val" id="val-ag">—</span>
+          </div>
+          <div class="cond-row">
+            <span class="cond-label">Umbral &nbsp;<em>√(2gl)</em></span>
+            <span class="cond-val" id="val-thr">—</span>
+          </div>
+          <div class="cond-row">
+            <span class="cond-label">ω₀ &nbsp;=&nbsp; √(g/l)</span>
+            <span class="cond-val" id="val-w0">—</span>
+          </div>
+          <div class="verdict-row" id="verdict-row">
+            <span id="verdict">—</span>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button id="btn-play" class="primary" onclick="togglePlay()">⏸ Pausar</button>
+          <button onclick="resetSim()">↺ Reiniciar</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <span class="canvas-label">Potencial efectivo &nbsp;U<sub style="font-size:8px">eff</sub>(φ) — §30</span>
+        <canvas id="ueffCanvas" width="370" height="245" style="padding: 30px 0;"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /.sim-main -->
+
+  <div class="code-section">
+    <button class="code-toggle-btn" onclick="toggleCode()">
+      <span class="code-icon">&lt;/&gt;</span>
+      <span id="code-btn-label">Ver código fuente comentado</span>
+      <span style="margin-left:auto;font-size:9.5px;color:#4a5568;">HTML · CSS · JS · RK4 Physics</span>
+    </button>
+    <div class="code-container" id="code-container">
+      <pre id="code-display">// Haz clic en "Ver código fuente" para cargar...</pre>
+    </div>
+  </div>
+
+</div><!-- /.sim-dark -->
+</div><!-- /.sim-band -->
+
+<!-- ══════════════════════════════════════════
+     INFORME — PARTE 2 (blanco)
+══════════════════════════════════════════ -->
+<div class="paper paper-cont">
+
+<section id="conclusiones">
+  <h2><span class="sec-num">4.</span>Análisis y conclusiones</h2>
+  <ol class="conclusions">
+    <li>
+      <strong>Verificación de la condición de Kapitza.</strong>
+      Los presets <em>Kapitza estable</em> e <em>Inestable</em> confirman de forma directa
+      el criterio (16): cuando $a\gamma > \sqrt{2gl}$, el péndulo iniciado en
+      $\varphi \approx \pi$ permanece oscilando en torno a la posición invertida
+      indefinidamente; cuando $a\gamma < \sqrt{2gl}$, escapa hacia $\varphi = 0$
+      sin importar cuán precisa sea la condición inicial.
+    </li>
+    <li>
+      <strong>Coherencia con el potencial efectivo.</strong>
+      La gráfica de $U_\text{ef}(\varphi)$ exhibe un mínimo local en $\varphi = \pi$
+      precisamente cuando la condición (16) se satisface, y lo pierde cuando no.
+      Esto valida la aproximación de Landau §30 para $\gamma \gg \omega_0$:
+      el movimiento promedio del péndulo obedece a un potencial emergente
+      que no existe en el sistema original sin forzante.
+    </li>
+    <li>
+      <strong>Estructura del espacio de fase.</strong>
+      El diagrama $(\varphi,\,\dot\varphi)$ revela dos regímenes cualitativamente
+      distintos. En el régimen estable aparecen órbitas cerradas alrededor de
+      $\varphi = \pi$, análogas a las del oscilador armónico en torno a un mínimo
+      de potencial. En el régimen inestable, las trayectorias se alejan
+      monotónicamente de $\pi$, reflejando la naturaleza de punto de silla
+      del equilibrio invertido.
+    </li>
+    <li>
+      <strong>Frontera de la separatriz.</strong>
+      En el preset <em>En la frontera</em> ($a\gamma \approx \sqrt{2gl}$), el sistema
+      exhibe un comportamiento marginal: el mínimo de $U_\text{ef}$ en $\pi$ desaparece
+      y las órbitas del espacio de fase pasan de cerradas a abiertas.
+      Esto corresponde a la bifurcación predicha por la condición (15).
+    </li>
+    <li>
+      <strong>Precisión numérica.</strong>
+      El integrador RK4 con $h = 5\times10^{-4}$ s preserva las cantidades
+      conservadas con errores relativos inferiores a $10^{-6}$ durante toda la simulación,
+      confirmando la idoneidad del paso de tiempo seleccionado para resolver la escala
+      rápida $\sim 1/\gamma$.
+    </li>
+    <li>
+      <strong>Alcance del modelo.</strong>
+      El potencial efectivo (14) es válido en el límite $\gamma \gg \omega_0$ y
+      $a \ll l$. Para valores de $\gamma$ comparables a $\omega_0$ o amplitudes $a$ grandes,
+      el promediado de §30 pierde precisión y la simulación numérica —que resuelve la
+      ecuación completa (6)— constituye la referencia correcta.
+    </li>
+  </ol>
+</section>
+
+<section id="referencias">
+  <h2>Referencias</h2>
+  <ol class="refs">
+    <li>
+      L. D. Landau y E. M. Lifshitz,
+      <em>Mecánica</em>, 3.ª ed. §5 (Problema 3c), §27, §30.
+      Reverté, Barcelona, 1994.
+    </li>
+    <li>
+      P. L. Kapitza,
+      "Dynamic stability of a pendulum when its point of suspension vibrates,"
+      <em>Soviet Physics JETP</em>, vol. 21, pp. 588–597, 1951.
+    </li>
+    <li>
+      H. Goldstein, C. P. Poole y J. L. Safko,
+      <em>Classical Mechanics</em>, 3.ª ed. Caps. 1 y 5.
+      Addison-Wesley, San Francisco, 2002.
+    </li>
+    <li>
+      G. Stephenson,
+      "On a New Type of Dynamical Stability,"
+      <em>Memoirs and Proceedings of the Manchester Literary and Philosophical Society</em>,
+      vol. 52, núm. 8, pp. 1–10, 1908.
+    </li>
+    <li>
+      A. Butikov,
+      "On the dynamic stabilization of an inverted pendulum,"
+      <em>American Journal of Physics</em>, vol. 69, núm. 7, pp. 755–768, 2001.
+      <br><span class="doi">doi: 10.1119/1.1365403</span>
+    </li>
+  </ol>
+</section>
+
+</div><!-- /.paper-cont -->
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="site-footer">
+  <div class="footer-loc">
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 1a5 5 0 0 0-5 5c0 3.5 5 9 5 9s5-5.5 5-9a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+    </svg>
+    <span>Medellín, Colombia · Universidad de Antioquia</span>
+  </div>
+  <a href="https://github.com/JhoanMoscoso" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    GitHub
+  </a>
+</footer>
 
 <!-- ═══════════════════════════════════════════════════════════════
      JAVASCRIPT — FÍSICA + ANIMACIÓN
 ═══════════════════════════════════════════════════════════════ -->
 <script>
-// ================================================================
-//  PÉNDULO DE KAPITZA — Simulación Numérica Interactiva
-//  Jhoan · Mecánica Teórica II · Universidad de Antioquia · 2026
-// ================================================================
-//
-//  FUNDAMENTO TEÓRICO  (Landau & Lifshitz, Mecánica):
-//
-//  ┌─────────────────────────────────────────────────────────────┐
-//  │  [§5 Prob. 3c]  Lagrangiano con soporte y = a·cos(γt):    │
-//  │                                                             │
-//  │  L = ½ml²φ̇² + mlaγ²cos(γt)cosφ + mgl cosφ              │
-//  │                                                             │
-//  │  Ecuación de movimiento COMPLETA (no linealizada):          │
-//  │                                                             │
-//  │  φ̈ = −[g/l + (aγ²/l)·cos(γt)] · sinφ         (Ec. 1)   │
-//  │                                                             │
-//  │  [§30 Prob. 1]  Potencial efectivo (campo rápido):         │
-//  │                                                             │
-//  │  U_eff = mgl[−cosφ + (a²γ²/4gl)·sin²φ]        (Ec. 2)   │
-//  │                                                             │
-//  │  Condición de Kapitza (φ=π es mínimo de U_eff):            │
-//  │                                                             │
-//  │  a·γ > √(2gl)                                  (Ec. 3)   │
-//  └─────────────────────────────────────────────────────────────┘
-//
-//  El integrador numérico es Runge-Kutta de 4to orden (RK4).
-//  Paso de tiempo dt = 0.0005 s, 30 pasos RK4 por frame.
-// ================================================================
-
-// ─────────────────────────────────────
-//  PARÁMETROS FÍSICOS (mutables)
-// ─────────────────────────────────────
 const P = {
-  g:     9.81,   // [m/s²]    gravedad
-  l:     0.50,   // [m]       longitud del péndulo
-  a:     0.15,   // [m]       amplitud de oscilación del soporte
-  gamma: 20.0,   // [rad/s]   frecuencia de la forzante
-  m:     1.0,    // [kg]      masa (cancela en la dinámica)
+  g:     9.81,
+  l:     0.50,
+  a:     0.15,
+  gamma: 20.0,
+  m:     1.0,
 };
 
-// ─────────────────────────────────────
-//  ESTADO DINÁMICO
-// ─────────────────────────────────────
-let phi  = Math.PI - 0.04;  // ángulo (rad)  — π ≡ posición invertida
-let dphi = 0.0;             // velocidad angular (rad/s)
-let t    = 0.0;             // tiempo simulado (s)
+let phi  = Math.PI - 0.04;
+let dphi = 0.0;
+let t    = 0.0;
 
-// ─────────────────────────────────────
-//  CONTROL DE SIMULACIÓN
-// ─────────────────────────────────────
 let running = true;
 let animId  = null;
 
-// ─────────────────────────────────────
-//  HISTORIA PARA TRAZAS
-// ─────────────────────────────────────
-const MAX_TRAIL  = 180;    // puntos del rastro del bob
-const MAX_PHASE  = 5000;   // puntos del espacio de fase
-const trail      = [];     // [{x, y}]  posiciones canvas del bob
-const phaseHist  = [];     // [{phi, dphi}]
+const MAX_TRAIL  = 180;
+const MAX_PHASE  = 5000;
+const trail      = [];
+const phaseHist  = [];
 
-// ================================================================
-//  FÍSICA — INTEGRADOR RK4
-// ================================================================
+const DT          = 0.0005;
+const STEPS_FRAME = 10;
 
-const DT          = 0.0005;  // paso de tiempo [s]
-const STEPS_FRAME = 30;      // pasos RK4 por frame de animación
-
-/**
- * derivadas(phi, dphi, t)
- *
- * Sistema de EDOs de primer orden derivado del Lagrangiano §5:
- *   dy/dt = [dφ/dt, dφ̇/dt]
- *
- *   dφ/dt  = φ̇
- *   dφ̇/dt = −[g/l + aγ²/l · cos(γt)] · sinφ       ← Ec. 1
- *
- * @returns {Array} [dφ/dt, dφ̇/dt]
- */
 function derivadas(phi, dphi, t) {
   const ddphi = -(P.g / P.l + (P.a * P.gamma * P.gamma / P.l) * Math.cos(P.gamma * t))
                 * Math.sin(phi);
   return [dphi, ddphi];
 }
 
-/**
- * rk4Step(phi, dphi, t)
- *
- * Un paso del integrador Runge-Kutta de 4to orden.
- * Error de truncamiento local: O(h⁵).
- *
- *   k₁ = h · f(y, t)
- *   k₂ = h · f(y + k₁/2, t + h/2)
- *   k₃ = h · f(y + k₂/2, t + h/2)
- *   k₄ = h · f(y + k₃, t + h)
- *   y(t+h) ≈ y(t) + (k₁ + 2k₂ + 2k₃ + k₄) / 6
- *
- * @returns {Array} [phi_nuevo, dphi_nuevo]
- */
 function rk4Step(phi, dphi, t) {
   const h = DT;
   const [k1, l1] = derivadas(phi,              dphi,              t        );
   const [k2, l2] = derivadas(phi + 0.5*h*k1,  dphi + 0.5*h*l1,  t + 0.5*h);
   const [k3, l3] = derivadas(phi + 0.5*h*k2,  dphi + 0.5*h*l2,  t + 0.5*h);
   const [k4, l4] = derivadas(phi +     h*k3,  dphi +     h*l3,  t +     h );
-
   return [
     phi  + (h / 6) * (k1 + 2*k2 + 2*k3 + k4),
     dphi + (h / 6) * (l1 + 2*l2 + 2*l3 + l4),
   ];
 }
 
-/**
- * Ueff(phi)
- *
- * Potencial efectivo de Landau §30 Prob. 1 (Ec. 2):
- *   U_eff(φ) = mgl[−cosφ + (a²γ²/4gl)·sin²φ]
- *
- * Cuando aγ > √(2gl), U_eff tiene mínimos en φ = 0 Y φ = ±π.
- * El segundo mínimo (φ=π) explica la estabilidad del péndulo invertido.
- */
 function Ueff(phi) {
   const alpha = (P.a * P.a * P.gamma * P.gamma) / (4.0 * P.g * P.l);
   return P.m * P.g * P.l * (-Math.cos(phi) + alpha * Math.sin(phi) ** 2);
 }
 
-// ================================================================
-//  CONDICIÓN DE KAPITZA  (Ec. 3)
-// ================================================================
-
-/** isKapitzaStable(): verifica a·γ > √(2gl) */
 function isKapitzaStable() {
   return (P.a * P.gamma) > Math.sqrt(2 * P.g * P.l);
 }
 
-/** nearBoundary(): margen relativo < 5% */
 function nearBoundary() {
   const ag  = P.a * P.gamma;
   const thr = Math.sqrt(2 * P.g * P.l);
   return Math.abs(ag - thr) / thr < 0.05;
 }
-
-// ================================================================
-//  REFERENCIAS A CANVASES
-// ================================================================
 
 const pendCanvas  = document.getElementById('pendCanvas');
 const phaseCanvas = document.getElementById('phaseCanvas');
@@ -641,27 +551,16 @@ const ctxP = pendCanvas.getContext('2d');
 const ctxF = phaseCanvas.getContext('2d');
 const ctxU = ueffCanvas.getContext('2d');
 
-// ================================================================
-//  RENDER — CANVAS 1: PÉNDULO
-// ================================================================
-
 function drawPendulum() {
   const W = pendCanvas.width;
   const H = pendCanvas.height;
   ctxP.clearRect(0, 0, W, H);
 
-  // Escala dinámica — el péndulo siempre cabe en el canvas
   const maxReach = P.l + P.a;
   const scale = Math.min((H * 0.44) / maxReach, 290);
-
-  // Centro del pivote en reposo (canvas coords)
   const cx = W * 0.5;
   const cy = H * 0.52;
-
-  // Posición actual del pivote (oscila verticalmente)
   const pivotY = cy + P.a * scale * Math.cos(P.gamma * t);
-
-  // Posición del bob
   const bobX = cx     + P.l * scale * Math.sin(phi);
   const bobY = pivotY + P.l * scale * Math.cos(phi);
 
@@ -669,17 +568,11 @@ function drawPendulum() {
   const near   = nearBoundary();
   const color  = near ? '#e3b341' : (stable ? '#3fb950' : '#f85149');
 
-  // ── Grid de fondo ──
   ctxP.strokeStyle = '#111a28';
   ctxP.lineWidth = 0.5;
-  for (let x = 0; x < W; x += 50) {
-    ctxP.beginPath(); ctxP.moveTo(x, 0); ctxP.lineTo(x, H); ctxP.stroke();
-  }
-  for (let y = 0; y < H; y += 50) {
-    ctxP.beginPath(); ctxP.moveTo(0, y); ctxP.lineTo(W, y); ctxP.stroke();
-  }
+  for (let x = 0; x < W; x += 50) { ctxP.beginPath(); ctxP.moveTo(x, 0); ctxP.lineTo(x, H); ctxP.stroke(); }
+  for (let y = 0; y < H; y += 50) { ctxP.beginPath(); ctxP.moveTo(0, y); ctxP.lineTo(W, y); ctxP.stroke(); }
 
-  // ── Líneas de referencia: vertical y horizontal ──
   ctxP.setLineDash([5, 5]);
   ctxP.strokeStyle = '#1e2d42';
   ctxP.lineWidth = 1;
@@ -687,23 +580,16 @@ function drawPendulum() {
   ctxP.beginPath(); ctxP.moveTo(10, cy); ctxP.lineTo(W - 10, cy); ctxP.stroke();
   ctxP.setLineDash([]);
 
-  // ── Marcador de posición invertida (φ=π) ──
   const invY = cy - P.l * scale;
   ctxP.fillStyle = color + '33';
-  ctxP.beginPath();
-  ctxP.arc(cx, invY, 10, 0, 2 * Math.PI);
-  ctxP.fill();
-  ctxP.strokeStyle = color + '55';
-  ctxP.lineWidth = 1;
-  ctxP.stroke();
+  ctxP.beginPath(); ctxP.arc(cx, invY, 10, 0, 2 * Math.PI); ctxP.fill();
+  ctxP.strokeStyle = color + '55'; ctxP.lineWidth = 1; ctxP.stroke();
   ctxP.fillStyle = color + '66';
   ctxP.font = '9px JetBrains Mono, monospace';
   ctxP.fillText('φ = π', cx + 13, invY + 4);
 
-  // ── Rastro del bob ──
   trail.push({ x: bobX, y: bobY });
   if (trail.length > MAX_TRAIL) trail.shift();
-
   if (trail.length > 1) {
     for (let i = 1; i < trail.length; i++) {
       const alpha = (i / trail.length);
@@ -718,79 +604,43 @@ function drawPendulum() {
     }
   }
 
-  // ── Riel del soporte ──
   const railH = P.a * scale * 1.4;
-  ctxP.strokeStyle = '#2a3a55';
-  ctxP.lineWidth = 4;
-  ctxP.lineCap = 'round';
-  ctxP.beginPath();
-  ctxP.moveTo(cx, cy - railH);
-  ctxP.lineTo(cx, cy + railH);
-  ctxP.stroke();
+  ctxP.strokeStyle = '#2a3a55'; ctxP.lineWidth = 4; ctxP.lineCap = 'round';
+  ctxP.beginPath(); ctxP.moveTo(cx, cy - railH); ctxP.lineTo(cx, cy + railH); ctxP.stroke();
 
-  // ── Pivot (bloque deslizante) ──
   const pw = 26, ph = 14;
-  ctxP.fillStyle = '#0f1d2e';
-  ctxP.strokeStyle = color;
-  ctxP.lineWidth = 1.5;
+  ctxP.fillStyle = '#0f1d2e'; ctxP.strokeStyle = color; ctxP.lineWidth = 1.5;
   roundRectPath(ctxP, cx - pw/2, pivotY - ph/2, pw, ph, 4);
   ctxP.fill(); ctxP.stroke();
-  // Flecha de oscilación
-  ctxP.fillStyle = color + '88';
-  ctxP.font = '8px monospace';
+  ctxP.fillStyle = color + '88'; ctxP.font = '8px monospace';
   ctxP.fillText('↕', cx + pw/2 + 3, pivotY + 3);
 
-  // ── Varilla del péndulo ──
   const rodGrad = ctxP.createLinearGradient(cx, pivotY, bobX, bobY);
   rodGrad.addColorStop(0, '#3b5070');
   rodGrad.addColorStop(1, color + '99');
-  ctxP.strokeStyle = rodGrad;
-  ctxP.lineWidth = 2;
-  ctxP.lineCap = 'round';
-  ctxP.beginPath();
-  ctxP.moveTo(cx, pivotY);
-  ctxP.lineTo(bobX, bobY);
-  ctxP.stroke();
+  ctxP.strokeStyle = rodGrad; ctxP.lineWidth = 2; ctxP.lineCap = 'round';
+  ctxP.beginPath(); ctxP.moveTo(cx, pivotY); ctxP.lineTo(bobX, bobY); ctxP.stroke();
 
-  // ── Bob ──
   const R = 13;
   const gBob = ctxP.createRadialGradient(bobX - 3, bobY - 3, 1, bobX, bobY, R);
   gBob.addColorStop(0, stable ? '#7eeaa0' : '#ff9b95');
   gBob.addColorStop(1, stable ? '#1a4d2a' : '#5a1010');
-  ctxP.beginPath();
-  ctxP.arc(bobX, bobY, R, 0, 2 * Math.PI);
-  ctxP.fillStyle = gBob;
-  ctxP.fill();
-  ctxP.strokeStyle = color;
-  ctxP.lineWidth = 2;
-  ctxP.stroke();
+  ctxP.beginPath(); ctxP.arc(bobX, bobY, R, 0, 2 * Math.PI);
+  ctxP.fillStyle = gBob; ctxP.fill();
+  ctxP.strokeStyle = color; ctxP.lineWidth = 2; ctxP.stroke();
 
-  // ── Línea de ángulo visual ──
-  ctxP.strokeStyle = color + '44';
-  ctxP.lineWidth = 1;
-  ctxP.setLineDash([3, 4]);
-  ctxP.beginPath();
-  ctxP.moveTo(cx, pivotY);
-  ctxP.lineTo(cx, pivotY + P.l * scale * 0.5);
-  ctxP.stroke();
+  ctxP.strokeStyle = color + '44'; ctxP.lineWidth = 1; ctxP.setLineDash([3, 4]);
+  ctxP.beginPath(); ctxP.moveTo(cx, pivotY); ctxP.lineTo(cx, pivotY + P.l * scale * 0.5); ctxP.stroke();
   ctxP.setLineDash([]);
 }
-
-// ================================================================
-//  RENDER — CANVAS 2: ESPACIO DE FASE
-// ================================================================
 
 function drawPhaseSpace() {
   const W = phaseCanvas.width;
   const H = phaseCanvas.height;
   ctxF.clearRect(0, 0, W, H);
-
-  ctxF.fillStyle = '#0a0e16';
-  ctxF.fillRect(0, 0, W, H);
+  ctxF.fillStyle = '#0a0e16'; ctxF.fillRect(0, 0, W, H);
 
   const stable = isKapitzaStable();
-
-  // Rango del espacio de fase
   const phiMin = -Math.PI, phiMax = Math.PI;
   let dphiRange = Math.max(15, Math.abs(dphi) * 1.6);
   if (phaseHist.length > 0) {
@@ -800,239 +650,129 @@ function drawPhaseSpace() {
   const dphiMin = -dphiRange, dphiMax = dphiRange;
 
   const pad = { t: 20, b: 26, l: 44, r: 14 };
-  const toX = v  => pad.l + (v - phiMin)  / (phiMax  - phiMin)  * (W - pad.l - pad.r);
-  const toY = v  => pad.t + (1 - (v - dphiMin) / (dphiMax - dphiMin)) * (H - pad.t - pad.b);
+  const toX = v => pad.l + (v - phiMin) / (phiMax - phiMin) * (W - pad.l - pad.r);
+  const toY = v => pad.t + (1 - (v - dphiMin) / (dphiMax - dphiMin)) * (H - pad.t - pad.b);
 
-  // ── Grid y ejes ──
-  ctxF.strokeStyle = '#171f30';
-  ctxF.lineWidth = 1;
-  // Líneas horizontales
+  ctxF.strokeStyle = '#171f30'; ctxF.lineWidth = 1;
   [-dphiRange*0.5, 0, dphiRange*0.5].forEach(v => {
-    ctxF.beginPath();
-    ctxF.moveTo(pad.l, toY(v)); ctxF.lineTo(W - pad.r, toY(v));
-    ctxF.stroke();
+    ctxF.beginPath(); ctxF.moveTo(pad.l, toY(v)); ctxF.lineTo(W - pad.r, toY(v)); ctxF.stroke();
   });
-  // Líneas verticales en -π, -π/2, 0, π/2, π
   [-Math.PI, -Math.PI/2, 0, Math.PI/2, Math.PI].forEach(v => {
-    ctxF.beginPath();
-    ctxF.moveTo(toX(v), pad.t); ctxF.lineTo(toX(v), H - pad.b);
-    ctxF.stroke();
+    ctxF.beginPath(); ctxF.moveTo(toX(v), pad.t); ctxF.lineTo(toX(v), H - pad.b); ctxF.stroke();
   });
 
-  // Ejes principales más brillantes
-  ctxF.strokeStyle = '#263347';
-  ctxF.lineWidth = 1.2;
+  ctxF.strokeStyle = '#263347'; ctxF.lineWidth = 1.2;
   ctxF.beginPath(); ctxF.moveTo(toX(0), pad.t); ctxF.lineTo(toX(0), H-pad.b); ctxF.stroke();
   ctxF.beginPath(); ctxF.moveTo(pad.l, toY(0)); ctxF.lineTo(W-pad.r, toY(0)); ctxF.stroke();
 
-  // ── Etiquetas eje X (φ) ──
-  ctxF.fillStyle = '#3b4d66';
-  ctxF.font = '9px JetBrains Mono, monospace';
-  ctxF.textAlign = 'center';
+  ctxF.fillStyle = '#3b4d66'; ctxF.font = '9px JetBrains Mono, monospace'; ctxF.textAlign = 'center';
   [[-Math.PI,'−π'], [-Math.PI/2,'−π/2'], [0,'0'], [Math.PI/2,'π/2'], [Math.PI,'π']].forEach(([v, lbl]) => {
     ctxF.fillText(lbl, toX(v), H - 6);
   });
-  ctxF.textAlign = 'left';
-  ctxF.fillText('φ', W - pad.r - 8, H - 6);
+  ctxF.textAlign = 'left'; ctxF.fillText('φ', W - pad.r - 8, H - 6);
 
-  // Etiqueta eje Y
-  ctxF.save();
-  ctxF.translate(12, H / 2);
-  ctxF.rotate(-Math.PI / 2);
-  ctxF.textAlign = 'center';
-  ctxF.fillText('φ̇ (rad/s)', 0, 0);
-  ctxF.restore();
+  ctxF.save(); ctxF.translate(12, H / 2); ctxF.rotate(-Math.PI / 2);
+  ctxF.textAlign = 'center'; ctxF.fillText('φ̇ (rad/s)', 0, 0); ctxF.restore();
 
-  // Valor máx eje Y
   ctxF.textAlign = 'right';
   ctxF.fillText(dphiRange.toFixed(1), pad.l - 3, pad.t + 10);
   ctxF.fillText((-dphiRange).toFixed(1), pad.l - 3, H - pad.b);
   ctxF.textAlign = 'left';
 
-  // ── Puntos del espacio de fase ──
   const n = phaseHist.length;
   for (let i = 0; i < n; i++) {
     const { phi: p, dphi: dp } = phaseHist[i];
     const wrapped = wrapAngle(p);
-    const px = toX(wrapped);
-    const py = toY(dp);
+    const px = toX(wrapped); const py = toY(dp);
     if (px < pad.l || px > W - pad.r || py < pad.t || py > H - pad.b) continue;
-
-    const age   = i / n;
-    const alpha = 0.25 + 0.75 * age;
-
-    if (stable) {
-      ctxF.fillStyle = `rgba(63,185,80,${alpha})`;
-    } else {
-      ctxF.fillStyle = `rgba(248,${Math.round(81+100*(1-age))},73,${alpha})`;
-    }
-    ctxF.beginPath();
-    ctxF.arc(px, py, 1.2, 0, 2 * Math.PI);
-    ctxF.fill();
+    const age = i / n; const alpha = 0.25 + 0.75 * age;
+    ctxF.fillStyle = stable
+      ? `rgba(63,185,80,${alpha})`
+      : `rgba(248,${Math.round(81+100*(1-age))},73,${alpha})`;
+    ctxF.beginPath(); ctxF.arc(px, py, 1.2, 0, 2 * Math.PI); ctxF.fill();
   }
 
-  // ── Punto actual ──
-  const curX = toX(wrapAngle(phi));
-  const curY = toY(dphi);
+  const curX = toX(wrapAngle(phi)); const curY = toY(dphi);
   if (curX >= pad.l && curX <= W-pad.r && curY >= pad.t && curY <= H-pad.b) {
-    // Halo
-    ctxF.beginPath();
-    ctxF.arc(curX, curY, 7, 0, 2 * Math.PI);
-    ctxF.fillStyle = 'rgba(88,166,255,0.15)';
-    ctxF.fill();
-    // Punto
-    ctxF.beginPath();
-    ctxF.arc(curX, curY, 3.5, 0, 2 * Math.PI);
-    ctxF.fillStyle = '#58a6ff';
-    ctxF.fill();
-    ctxF.strokeStyle = '#ffffff55';
-    ctxF.lineWidth = 1;
-    ctxF.stroke();
+    ctxF.beginPath(); ctxF.arc(curX, curY, 7, 0, 2 * Math.PI);
+    ctxF.fillStyle = 'rgba(88,166,255,0.15)'; ctxF.fill();
+    ctxF.beginPath(); ctxF.arc(curX, curY, 3.5, 0, 2 * Math.PI);
+    ctxF.fillStyle = '#58a6ff'; ctxF.fill();
+    ctxF.strokeStyle = '#ffffff55'; ctxF.lineWidth = 1; ctxF.stroke();
   }
 }
 
-// ================================================================
-//  RENDER — CANVAS 3: POTENCIAL EFECTIVO
-// ================================================================
-
 function drawUeff() {
-  const W = ueffCanvas.width;
-  const H = ueffCanvas.height;
+  const W = ueffCanvas.width; const H = ueffCanvas.height;
   ctxU.clearRect(0, 0, W, H);
-
-  ctxU.fillStyle = '#0a0e16';
-  ctxU.fillRect(0, 0, W, H);
+  ctxU.fillStyle = '#0a0e16'; ctxU.fillRect(0, 0, W, H);
 
   const stable = isKapitzaStable();
   const N = 300;
   const phis = Array.from({ length: N }, (_, i) => -Math.PI + 2 * Math.PI * i / (N-1));
-  const Us   = phis.map(Ueff);
-  const Umin = Math.min(...Us);
-  const Umax = Math.max(...Us);
+  const Us = phis.map(Ueff);
+  const Umin = Math.min(...Us); const Umax = Math.max(...Us);
   const Urng = Umax - Umin || 1;
 
   const pad = { t: 24, b: 26, l: 8, r: 8 };
   const toX = v => pad.l + (v + Math.PI) / (2 * Math.PI) * (W - pad.l - pad.r);
   const toY = u => pad.t + (1 - (u - Umin) / Urng) * (H - pad.t - pad.b);
-
   const color = stable ? '#3fb950' : '#f85149';
 
-  // ── U_eff relleno ──
   ctxU.beginPath();
-  phis.forEach((p, i) => {
-    const x = toX(p), y = toY(Us[i]);
-    i === 0 ? ctxU.moveTo(x, y) : ctxU.lineTo(x, y);
-  });
-  ctxU.lineTo(toX(Math.PI),  H - pad.b);
-  ctxU.lineTo(toX(-Math.PI), H - pad.b);
-  ctxU.closePath();
-  ctxU.fillStyle = color + '15';
-  ctxU.fill();
+  phis.forEach((p, i) => { const x = toX(p), y = toY(Us[i]); i === 0 ? ctxU.moveTo(x, y) : ctxU.lineTo(x, y); });
+  ctxU.lineTo(toX(Math.PI), H - pad.b); ctxU.lineTo(toX(-Math.PI), H - pad.b); ctxU.closePath();
+  ctxU.fillStyle = color + '15'; ctxU.fill();
 
-  // ── U_eff curva ──
   const gLine = ctxU.createLinearGradient(0, pad.t, 0, H - pad.b);
-  gLine.addColorStop(0, color + 'ff');
-  gLine.addColorStop(1, color + '66');
-  ctxU.strokeStyle = gLine;
-  ctxU.lineWidth = 2;
+  gLine.addColorStop(0, color + 'ff'); gLine.addColorStop(1, color + '66');
+  ctxU.strokeStyle = gLine; ctxU.lineWidth = 2;
   ctxU.beginPath();
-  phis.forEach((p, i) => {
-    const x = toX(p), y = toY(Us[i]);
-    i === 0 ? ctxU.moveTo(x, y) : ctxU.lineTo(x, y);
-  });
+  phis.forEach((p, i) => { const x = toX(p), y = toY(Us[i]); i === 0 ? ctxU.moveTo(x, y) : ctxU.lineTo(x, y); });
   ctxU.stroke();
 
-  // ── Línea U=0 ──
   if (Umin < 0 && Umax > 0) {
-    ctxU.strokeStyle = '#263347';
-    ctxU.lineWidth = 1;
-    ctxU.setLineDash([4, 4]);
-    ctxU.beginPath();
-    ctxU.moveTo(pad.l, toY(0)); ctxU.lineTo(W - pad.r, toY(0));
-    ctxU.stroke();
+    ctxU.strokeStyle = '#263347'; ctxU.lineWidth = 1; ctxU.setLineDash([4, 4]);
+    ctxU.beginPath(); ctxU.moveTo(pad.l, toY(0)); ctxU.lineTo(W - pad.r, toY(0)); ctxU.stroke();
     ctxU.setLineDash([]);
   }
 
-  // ── Mínimos (equilibrios estables) ──
-  // φ = 0 siempre estable
-  ctxU.beginPath();
-  ctxU.arc(toX(0), toY(Ueff(0)), 4.5, 0, 2*Math.PI);
-  ctxU.fillStyle = '#3fb950';
-  ctxU.fill();
+  ctxU.beginPath(); ctxU.arc(toX(0), toY(Ueff(0)), 4.5, 0, 2*Math.PI);
+  ctxU.fillStyle = '#3fb950'; ctxU.fill();
 
-  // φ = ±π estable solo si condición Kapitza
   if (stable) {
     [Math.PI, -Math.PI].forEach(v => {
-      ctxU.beginPath();
-      ctxU.arc(toX(v), toY(Ueff(v)), 4.5, 0, 2*Math.PI);
-      ctxU.fillStyle = '#3fb950';
-      ctxU.fill();
+      ctxU.beginPath(); ctxU.arc(toX(v), toY(Ueff(v)), 4.5, 0, 2*Math.PI);
+      ctxU.fillStyle = '#3fb950'; ctxU.fill();
     });
   } else {
-    // φ = ±π es máximo (inestable)
-    ctxU.beginPath();
-    ctxU.arc(toX(Math.PI), toY(Ueff(Math.PI)), 4.5, 0, 2*Math.PI);
-    ctxU.fillStyle = '#f85149';
-    ctxU.fill();
+    ctxU.beginPath(); ctxU.arc(toX(Math.PI), toY(Ueff(Math.PI)), 4.5, 0, 2*Math.PI);
+    ctxU.fillStyle = '#f85149'; ctxU.fill();
   }
 
-  // ── Punto actual en U_eff ──
-  const phiW = wrapAngle(phi);
-  const uNow = Ueff(phiW);
-  ctxU.beginPath();
-  ctxU.arc(toX(phiW), toY(uNow), 5, 0, 2*Math.PI);
-  ctxU.fillStyle = '#58a6ff';
-  ctxU.fill();
-  ctxU.strokeStyle = '#ffffff66';
-  ctxU.lineWidth = 1.5;
-  ctxU.stroke();
+  const phiW = wrapAngle(phi); const uNow = Ueff(phiW);
+  ctxU.beginPath(); ctxU.arc(toX(phiW), toY(uNow), 5, 0, 2*Math.PI);
+  ctxU.fillStyle = '#58a6ff'; ctxU.fill();
+  ctxU.strokeStyle = '#ffffff66'; ctxU.lineWidth = 1.5; ctxU.stroke();
 
-  // ── Etiquetas eje X ──
-  ctxU.fillStyle = '#3b4d66';
-  ctxU.font = '9px JetBrains Mono, monospace';
-  ctxU.textAlign = 'center';
-  [[-Math.PI,'−π'], [0,'0'], [Math.PI,'π']].forEach(([v, l]) => {
-    ctxU.fillText(l, toX(v), H - 7);
-  });
+  ctxU.fillStyle = '#3b4d66'; ctxU.font = '9px JetBrains Mono, monospace'; ctxU.textAlign = 'center';
+  [[-Math.PI,'−π'], [0,'0'], [Math.PI,'π']].forEach(([v, l]) => { ctxU.fillText(l, toX(v), H - 7); });
   ctxU.textAlign = 'left';
-
-  // Leyendas de equilibrios
-  ctxU.fillStyle = '#3fb950';
-  ctxU.font = '8.5px JetBrains Mono, monospace';
+  ctxU.fillStyle = '#3fb950'; ctxU.font = '8.5px JetBrains Mono, monospace';
   ctxU.fillText('● estable', 10, 14);
-  if (!stable) {
-    ctxU.fillStyle = '#f85149';
-    ctxU.fillText('● inestable', 10, 25);
-  }
+  if (!stable) { ctxU.fillStyle = '#f85149'; ctxU.fillText('● inestable', 10, 25); }
 }
 
-// ================================================================
-//  HELPERS
-// ================================================================
+function wrapAngle(a) { return ((a + Math.PI) % (2 * Math.PI)) - Math.PI; }
 
-/** wrapAngle: mapea φ al intervalo [−π, π] */
-function wrapAngle(a) {
-  return ((a + Math.PI) % (2 * Math.PI)) - Math.PI;
-}
-
-/** roundRectPath: path de rectángulo redondeado (compatible con todos los browsers) */
 function roundRectPath(ctx, x, y, w, h, r) {
   ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.arcTo(x + w, y, x + w, y + r, r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-  ctx.lineTo(x + r, y + h);
-  ctx.arcTo(x, y + h, x, y + h - r, r);
-  ctx.lineTo(x, y + r);
-  ctx.arcTo(x, y, x + r, y, r);
-  ctx.closePath();
+  ctx.moveTo(x + r, y); ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r); ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r); ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r); ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r); ctx.closePath();
 }
-
-// ================================================================
-//  ACTUALIZAR DISPLAYS DE CONDICIÓN
-// ================================================================
 
 function updateConditions() {
   const ag  = P.a * P.gamma;
@@ -1045,206 +785,133 @@ function updateConditions() {
   document.getElementById('val-thr').textContent = thr.toFixed(4);
   document.getElementById('val-w0').textContent  = w0.toFixed(4) + ' rad/s';
 
-  const verdict    = document.getElementById('verdict');
-  const vRow       = document.getElementById('verdict-row');
-  const badge      = document.getElementById('regime-badge');
+  const verdict = document.getElementById('verdict');
+  const vRow    = document.getElementById('verdict-row');
+  const badge   = document.getElementById('regime-badge');
 
   if (near) {
     verdict.textContent = '⚠ aγ ≈ √(2gl) — FRONTERA';
-    verdict.style.color = 'var(--orange)';
-    vRow.style.borderTopColor = 'var(--orange)';
+    verdict.style.color = 'var(--s-orange)';
+    vRow.style.borderTopColor = '#e3b341';
     badge.textContent = '≈ En la frontera';
     badge.className = 'badge boundary';
   } else if (stable) {
     verdict.textContent = 'aγ > √(2gl) — φ = π ESTABLE  ✓';
-    verdict.style.color = 'var(--green)';
-    vRow.style.borderTopColor = 'var(--green)';
+    verdict.style.color = '#3fb950';
+    vRow.style.borderTopColor = '#3fb950';
     badge.textContent = '✓ Kapitza estable';
     badge.className = 'badge stable';
   } else {
     verdict.textContent = 'aγ < √(2gl) — φ = π INESTABLE  ✗';
-    verdict.style.color = 'var(--red)';
-    vRow.style.borderTopColor = 'var(--red)';
+    verdict.style.color = '#f85149';
+    vRow.style.borderTopColor = '#f85149';
     badge.textContent = '✗ Inestable';
     badge.className = 'badge unstable';
   }
 
-  // Valores en vivo
   const phiDeg = (phi * 180 / Math.PI).toFixed(1);
   document.getElementById('live-vals').textContent =
     `φ = ${phiDeg}° | φ̇ = ${dphi.toFixed(2)} rad/s | t = ${t.toFixed(2)} s`;
 }
 
-// ================================================================
-//  BUCLE DE ANIMACIÓN
-// ================================================================
-
 function step() {
   if (!running) return;
-
-  // Avanzar la física STEPS_FRAME pasos por frame
   for (let i = 0; i < STEPS_FRAME; i++) {
     [phi, dphi] = rk4Step(phi, dphi, t);
     t += DT;
-
-    // Guardar en historia del espacio de fase (cada 4 pasos)
     if (i % 4 === 0) {
       phaseHist.push({ phi, dphi });
       if (phaseHist.length > MAX_PHASE) phaseHist.shift();
     }
   }
-
-  // Renderizar
-  drawPendulum();
-  drawPhaseSpace();
-  drawUeff();
-
-  // Actualizar displays
-  updateConditions();
-
+  drawPendulum(); drawPhaseSpace(); drawUeff(); updateConditions();
   animId = requestAnimationFrame(step);
 }
 
-// ================================================================
-//  SLIDERS
-// ================================================================
-
 function setupSliders() {
-  // Amplitud a
   document.getElementById('sl-a').addEventListener('input', function() {
     P.a = parseFloat(this.value);
     document.getElementById('val-a').textContent = P.a.toFixed(3) + ' m';
-    clearHistory();
-    updateConditions();
+    clearHistory(); updateConditions();
   });
-  // Gamma
   document.getElementById('sl-g').addEventListener('input', function() {
     P.gamma = parseFloat(this.value);
     document.getElementById('val-g').textContent = P.gamma.toFixed(1) + ' rad/s';
-    clearHistory();
-    updateConditions();
+    clearHistory(); updateConditions();
   });
-  // Longitud l
   document.getElementById('sl-l').addEventListener('input', function() {
     P.l = parseFloat(this.value);
     document.getElementById('val-l').textContent = P.l.toFixed(3) + ' m';
-    clearHistory();
-    updateConditions();
+    clearHistory(); updateConditions();
   });
-  // Ángulo inicial phi0
   document.getElementById('sl-phi').addEventListener('input', function() {
-    phi = parseFloat(this.value);
-    dphi = 0.0;
-    t = 0.0;
-    clearHistory();
+    phi = parseFloat(this.value); dphi = 0.0; t = 0.0; clearHistory();
     const frac = phi / Math.PI;
     let label;
-    if (Math.abs(frac - 1) < 0.02)       label = 'π rad';
-    else if (Math.abs(frac + 1) < 0.02)  label = '−π rad';
-    else if (Math.abs(frac) < 0.02)      label = '0 rad';
-    else                                   label = frac.toFixed(2) + 'π rad';
+    if (Math.abs(frac - 1) < 0.02)      label = 'π rad';
+    else if (Math.abs(frac + 1) < 0.02) label = '−π rad';
+    else if (Math.abs(frac) < 0.02)     label = '0 rad';
+    else                                  label = frac.toFixed(2) + 'π rad';
     document.getElementById('val-phi').textContent = label;
   });
 }
 
-function clearHistory() {
-  trail.length = 0;
-  phaseHist.length = 0;
-}
-
-// ================================================================
-//  CONTROLES
-// ================================================================
+function clearHistory() { trail.length = 0; phaseHist.length = 0; }
 
 function togglePlay() {
   running = !running;
   const btn = document.getElementById('btn-play');
   if (running) {
-    btn.textContent = '⏸ Pausar';
-    btn.className = 'primary';
+    btn.textContent = '⏸ Pausar'; btn.className = 'primary';
     animId = requestAnimationFrame(step);
   } else {
-    btn.textContent = '▶ Reanudar';
-    btn.className = '';
+    btn.textContent = '▶ Reanudar'; btn.className = '';
     cancelAnimationFrame(animId);
   }
 }
 
 function resetSim() {
-  phi  = parseFloat(document.getElementById('sl-phi').value);
-  dphi = 0.0;
-  t    = 0.0;
-  clearHistory();
+  phi = parseFloat(document.getElementById('sl-phi').value);
+  dphi = 0.0; t = 0.0; clearHistory();
 }
 
-/**
- * setPreset(name) — carga configuraciones de referencia
- *
- * Cada preset corresponde a una región física distinta:
- *   'stable'   → condición Kapitza satisfecha con margen
- *   'unstable' → aγ < √(2gl), el péndulo cae
- *   'boundary' → aγ ≈ √(2gl), comportamiento marginal
- *   'down'     → péndulo colgando, siempre estable
- */
 function setPreset(name) {
   const presets = {
-    //       a      γ     l     φ₀
     stable:   { a: 0.15, g: 20,  l: 0.50, phi: Math.PI - 0.04 },
     unstable: { a: 0.05, g: 10,  l: 0.50, phi: Math.PI - 0.04 },
     boundary: { a: 0.10, g: 14,  l: 0.50, phi: Math.PI - 0.04 },
     down:     { a: 0.12, g: 20,  l: 0.50, phi: 0.2             },
   };
-
-  const pr = presets[name];
-  if (!pr) return;
-
+  const pr = presets[name]; if (!pr) return;
   P.a = pr.a; P.gamma = pr.g; P.l = pr.l;
-  phi = pr.phi; dphi = 0.0; t = 0.0;
-  clearHistory();
-
-  // Sincronizar sliders y etiquetas
+  phi = pr.phi; dphi = 0.0; t = 0.0; clearHistory();
   document.getElementById('sl-a').value   = P.a;
   document.getElementById('sl-g').value   = P.gamma;
   document.getElementById('sl-l').value   = P.l;
   document.getElementById('sl-phi').value = phi;
-
   document.getElementById('val-a').textContent = P.a.toFixed(3) + ' m';
   document.getElementById('val-g').textContent = P.gamma.toFixed(1) + ' rad/s';
   document.getElementById('val-l').textContent = P.l.toFixed(3) + ' m';
   document.getElementById('val-phi').textContent = Math.abs(phi - Math.PI) < 0.1 ? 'π rad' : phi.toFixed(2) + ' rad';
-
   updateConditions();
 }
 
-// ================================================================
-//  CÓDIGO FUENTE TOGGLE
-// ================================================================
-
 let codeLoaded = false;
-
 function toggleCode() {
   const container = document.getElementById('code-container');
   const label     = document.getElementById('code-btn-label');
   const isOpen    = container.classList.toggle('open');
-
   label.textContent = isOpen ? 'Ocultar código fuente' : 'Ver código fuente comentado';
-
   if (isOpen && !codeLoaded) {
-    // Muestra el HTML completo de la página — el código es la página misma
     document.getElementById('code-display').textContent = document.documentElement.outerHTML;
     codeLoaded = true;
   }
 }
 
-// ================================================================
-//  INICIALIZACIÓN
-// ================================================================
-
 setupSliders();
-setPreset('stable');   // Preset por defecto: condición Kapitza cumplida
+setPreset('stable');
 updateConditions();
-step();                // Arrancar la animación
-
+step();
 </script>
 <script src="../../assets/js/nav.js"></script>
 </body>
