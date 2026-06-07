@@ -230,7 +230,9 @@ body {
 /* ─── FIGURAS ────────────────────────────────────────────── */
 figure { text-align: center; margin: 24px auto; }
 figure svg { display: block; margin: 0 auto; }
+figure img { display: block; margin: 0 auto; border-radius: 4px; }
 figcaption { font-size: 14px; color: var(--dim); margin-top: 8px; font-style: italic; }
+.fig-source { font-size: 12px; color: var(--dim); font-style: normal; margin-top: 4px; display: block; }
 
 /* ─── CONCLUSIONES & REFERENCIAS ────────────────────────── */
 ol.conclusions { padding-left: 20px; margin: 12px 0; }
