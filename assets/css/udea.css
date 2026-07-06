@@ -163,8 +163,39 @@
   line-height: 1.7;
 }
 
+/* ── Embedded project card ── */
+.project-embed {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-l);
+}
+.project-embed-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--r-sm);
+  object-fit: contain;
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--glass-border);
+  padding: var(--space-xs);
+  flex-shrink: 0;
+}
+.project-embed-info { flex: 1; min-width: 0; }
+.project-embed-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--white);
+  margin-bottom: 3px;
+}
+.project-embed-desc {
+  font-size: 0.82rem;
+  color: var(--dim);
+  line-height: 1.6;
+  margin: var(--space-xs) 0 var(--space-m);
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .page-hero { padding: 100px 0 var(--space-xl); }
   .subjects-grid { grid-template-columns: 1fr; }
+  .project-embed { flex-direction: column; align-items: center; text-align: center; }
 }
