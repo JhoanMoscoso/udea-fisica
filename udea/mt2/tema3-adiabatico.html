@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invariante Adiabático — Tarea 3 · Mecánica Teórica II</title>
+
+<!-- ── MathJax 3 ── -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath:  [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    tags: 'ams',
+    macros: {
+      dd:   '\\mathrm{d}',
+      half: '\\tfrac{1}{2}'
+    }
+  },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<!-- ── Fonts: Crimson Pro (informe) + JetBrains Mono (código/tablas) ── -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- Estilos -->
+<link rel="stylesheet" href="../../assets/css/informe.css">
+<!-- Site nav styles -->
+<link rel="stylesheet" href="../../assets/css/tarea1-nav.css">
+</head>
+<body>
+
+<!-- ═══════════ SITE NAV ═══════════ -->
+<nav class="site-nav">
+  <a href="../../index.html" class="site-nav-logo">Spatial <span>Ginkgo</span></a>
+  <ul class="site-nav-links">
+    <li><a href="../../udea/index.html">UdeA</a></li>
+    <li><a href="../../proyectos/index.html">Proyectos</a></li>
+    <li>
+      <a href="https://github.com/JhoanMoscoso" target="_blank" rel="noopener noreferrer" class="nav-ext">
+        GitHub ↗
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<nav class="site-breadcrumb" aria-label="Navegación de migas de pan">
+  <a href="../../udea/index.html">UdeA</a>
+  <span class="crumb-sep" aria-hidden="true">›</span>
+  <a href="../../udea/index.html">Mecánica Teórica 2</a>
+  <span class="crumb-sep" aria-hidden="true">›</span>
+  <span class="crumb-current">Tema 3 — Invariante Adiabático</span>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     INFORME — PARTE 1 (blanco)
+══════════════════════════════════════════ -->
+<div class="paper">
+
+<header class="report-header">
+  <h1>Invariante Adiabático: El Péndulo con Longitud<br>y Gravedad Efectiva Variables</h1>
+  <p class="subtitle">
+    Formulación hamiltoniana de un sistema con dos parámetros externos reónomos
+    y verificación numérica de la conservación de la variable de acción — Landau &amp; Lifshitz §49–51
+  </p>
+  <div class="meta-grid">
+    <div>Curso: <span>Mecánica Teórica II</span></div>
+    <div>Sección: <span>Formulación Hamiltoniana — Tarea 3</span></div>
+    <div>Docente: <span>Jorge Mahecha Gómez</span></div>
+    <div>Institución: <span>Universidad de Antioquia</span></div>
+  </div>
+</header>
+
+<!-- 1. PLANTEAMIENTO -->
+<section id="planteamiento">
+  <h2><span class="sec-num">1.</span>Planteamiento del problema</h2>
+  <p><strong>Problema elegido:</strong></p>
+  <p style="font-style: italic;">
+    «Considere un sistema unidimensional cuyo hamiltoniano depende de dos
+    parámetros, $\lambda_1$ y $\lambda_2$. Considere movimientos periódicos.
+    Defina un procedimiento, analítico o numérico, que permita calcular $I$
+    dados $\lambda_1$ y $\lambda_2$. Analice la adiabaticidad eligiendo una
+    dependencia temporal de los parámetros en los casos en que varíen muy
+    poco durante un período, o tengan alguna variación.»
+  </p>
+  <p>
+    La elección del sistema era libre, y entre varias opciones decidí
+    aplicarlo al problema clásico de un péndulo con longitud variable en el
+    tiempo (adiabáticamente) y en un sistema acelerado con $g_{\text{eff}}$.
+  </p>
+  <p>
+    Este problema tiene una historia particular de la que quiero hablar
+    brevemente: en la Conferencia Solvay de 1911, donde físicos como Planck,
+    Einstein y Lorentz discutían cómo cuantizar la física, alguien planteó la
+    siguiente pregunta: si un péndulo cuelga de una cuerda que pasa por un
+    agujero en el techo, y alguien la jala muy lentamente, ¿qué le pasa a la
+    frecuencia de oscilación? Ya sabemos que la energía no se conservará
+    (pues se hace trabajo al jalar la cuerda), pero resulta que $E/\nu$ sí
+    permanece prácticamente constante. Esa cantidad es, en esencia, nuestra
+    variable de acción (invariante adiabático).
+  </p>
+  <p>
+    Aquí se generaliza ese problema a <strong>dos</strong> parámetros
+    independientes:
+  </p>
+  <ul style="margin: 0 0 14px 20px; text-align: justify;">
+    <li>$\lambda_1 = l(t)$: la longitud de la cuerda, que cambia porque
+      alguien (¿o algo?) la jala o suelta lentamente.</li>
+    <li>$\lambda_2 = g_{\text{eff}}(t)$: una aceleración gravitacional
+      efectiva, que podría pensarse como el efecto producido por un ascensor
+      cuya aceleración cambia lentamente.</li>
+  </ul>
+  <p>
+    Se puede consultar
+    <a href="https://colab.research.google.com/drive/1yMDf94GGwjg1_HrSje8vRsgC6bfD8XH3?usp=sharing" target="_blank" rel="noopener noreferrer">este cuaderno de Google Colab</a>
+    con un borrador de los códigos, que incluye la parte más fundamental: la
+    solución numérica con RK4 de las ecuaciones de movimiento. La simulación
+    interactiva presentada en la sección 3 la construí con JavaScript
+    vanilla sobre un <code>&lt;canvas&gt;</code> de HTML, con apoyo del
+    modelo Claude; en ella se presentan el péndulo, el espacio de fase y la
+    serie temporal de la acción, con parámetros que el usuario puede variar
+    para ver en qué régimen de adiabaticidad está el sistema.
+  </p>
+</section>
+
+<!-- 2. MARCO TEÓRICO -->
+<section id="teoria">
+  <h2><span class="sec-num">2.</span>Marco teórico</h2>
+
+  <h3>2.1 Grados de libertad y la restricción reónoma</h3>
+  <p>
+    Para describir la posición del péndulo hace falta su longitud $l(t)$ y
+    su ángulo $\theta$:
+  </p>
+  $$\vec r(t) = l(t)\big(\sin\theta,\,-\cos\theta\big)$$
+  <p>
+    Como esta expresión usa dos cantidades, ambas dependientes del tiempo,
+    pensé inicialmente que el parámetro $\lambda_1$ relacionado con $l(t)$
+    era un grado de libertad adicional del sistema. Pero no es así: en
+    realidad, $l(t)$ es un dato externo, definido por un agente ajeno al
+    sistema, exactamente igual que $g_{\text{eff}}(t)$. Por eso se llaman
+    <strong>parámetros</strong>: no son incógnitas que el sistema resuelve
+    dinámicamente.
+  </p>
+  <p>
+    En el lenguaje formal, estos parámetros constituyen una restricción
+    <strong>holónoma y reónoma</strong>, que normalmente reduce los grados de
+    libertad, no los aumenta. El único grado de libertad genuinamente
+    dinámico sigue siendo el de siempre: $\theta$.
+  </p>
+
+  <h3>2.2 Energía cinética exacta</h3>
+  <p>
+    Derivando $\vec r(t)$ con la regla del producto (recordando que tanto $l$
+    como $\theta$ dependen del tiempo):
+  </p>
+  $$\dot{\vec r}(t) = \big(\dot l\sin\theta + l\dot\theta\cos\theta,\; -\dot l\cos\theta + l\dot\theta\sin\theta\big)$$
+  <p>
+    y al calcular $|\dot{\vec r}|^2$, los términos cruzados con
+    $\sin\theta\cos\theta$ se cancelan exactamente, dejando como resultado:
+  </p>
+  <div class="eq-box">
+    <div class="eq-label">Energía cinética — resultado exacto</div>
+    $$|\dot{\vec r}|^2 = \dot l^2 + (l\dot\theta)^2$$
+  </div>
+  <div class="note">
+    <strong>Error — aproximar antes de tiempo.</strong> En un primer intento
+    quise "simplificar" aplicando la aproximación de pequeñas oscilaciones
+    directamente dentro de las componentes de la velocidad, antes de
+    elevarlas al cuadrado. Esto generó términos de orden $\theta^3$ y
+    $\theta^4$ sin ningún sentido físico. Si se truncan $\sin\theta$ y
+    $\cos\theta$ en órdenes distintos y luego se usa la identidad
+    $\sin^2\theta+\cos^2\theta=1$, esa identidad deja de cumplirse
+    exactamente, y aparecen esos residuos falsos.
+  </div>
+  <p>
+    Ahora, como $l(t)$ es un parámetro externo, el término
+    $\frac12 m\dot l^2$ no depende de $\theta$ ni de $\dot\theta$, así que no
+    contribuye en nada a la ecuación de movimiento de $\theta$. Se descarta,
+    quedando la parte dinámicamente relevante:
+  </p>
+  $$T_\theta = \frac{1}{2}m\,l(t)^2\,\dot\theta^2$$
+
+  <h3>2.3 Energía potencial</h3>
+  <p>
+    Para la energía potencial se usa $U=mg_{\text{eff}}(t)\,y$, con $y$ la
+    componente vertical de la posición de la masa. Con
+    $y(\theta)=-l(t)\cos\theta$ y expandiendo
+    $\cos\theta\approx 1-\theta^2/2$:
+  </p>
+  <div class="eq-box">
+    <div class="eq-label">Energía potencial (aproximación armónica)</div>
+    $$U(\theta;t) = \frac{1}{2}m\,g_{\text{eff}}(t)\,l(t)\,\theta^2$$
+  </div>
+  <p>
+    Sin término lineal en $\theta$ (por expandir alrededor de un punto de
+    equilibrio) ni términos constantes que sabemos no afectarán la función
+    lagrangiana.
+  </p>
+
+  <h3>2.4 Lagrangiano, momento conjugado y Hamiltoniano</h3>
+  <p>Con $T_\theta$ y $U$ construidos, puedo escribir la función lagrangiana:</p>
+  $$L(\theta,\dot\theta;t) = \frac{1}{2}m\,l(t)^2\dot\theta^2 - \frac{1}{2}m\,g_{\text{eff}}(t)\,l(t)\,\theta^2$$
+  <p>El momento conjugado:</p>
+  $$p_\theta = \frac{\partial L}{\partial\dot\theta} = m\,l(t)^2\dot\theta \quad\Longrightarrow\quad \dot\theta = \frac{p_\theta}{m\,l(t)^2}$$
+  <p>Esta transformada de Legendre me da el Hamiltoniano:</p>
+  <div class="eq-box">
+    <div class="eq-label">Hamiltoniano del sistema</div>
+    $$H(\theta,p_\theta;l(t),g_{\text{eff}}(t)) = \frac{p_\theta^2}{2m\,l(t)^2} + \frac{1}{2}m\,g_{\text{eff}}(t)\,l(t)\,\theta^2$$
+  </div>
+  <p>
+    Una verificación rápida me permitió validar que: (1) cada término tiene
+    consistencia dimensional (unidades de energía), y (2) en el límite de
+    parámetros constantes esta función se reduce exactamente a la del
+    oscilador armónico simple, con momento de inercia $M=ml^2$ y frecuencia
+    $\omega^2 = g_{\text{eff}}/l$.
+  </p>
+  <div class="eq-box">
+    <div class="eq-label">Ecuaciones canónicas de Hamilton — las que integra la simulación (RK4)</div>
+    $$\dot\theta = \frac{p_\theta}{m\,l(t)^2}, \qquad \dot p_\theta = -m\,g_{\text{eff}}(t)\,l(t)\,\theta$$
+  </div>
+
+  <h3>2.5 Variable de acción y condición de adiabaticidad</h3>
+  <p>
+    A parámetros congelados en un instante dado, el sistema es un oscilador
+    armónico con $\omega(t)=\sqrt{g_{\text{eff}}(t)/l(t)}$, así que la
+    variable de acción es directamente:
+  </p>
+  <div class="eq-box">
+    <div class="eq-label">Variable de acción</div>
+    $$I(t) = \frac{E(t)}{\omega(t)} = E(t)\sqrt{\frac{l(t)}{g_{\text{eff}}(t)}}$$
+  </div>
+  <p>
+    La condición de adiabaticidad, según Landau (§49–51), se traduce en dos
+    desigualdades simultáneas:
+  </p>
+  $$\left|\frac{\dot l}{l}\right| \ll \omega(t), \qquad \left|\frac{\dot g_{\text{eff}}}{g_{\text{eff}}}\right| \ll \omega(t)$$
+  <p>
+    (Landau lo desarrolla para un único parámetro adiabático, pero menciona
+    que la extensión a varios parámetros es aditiva.)
+  </p>
+  <p>
+    Para explorarlas numéricamente elegí perfiles sinusoidales con tasas
+    independientes:
+  </p>
+  <div class="eq-box">
+    <div class="eq-label">Perfiles de los parámetros</div>
+    $$l(t) = l_0\big(1+\epsilon_1\sin(\Omega_1 t)\big), \qquad g_{\text{eff}}(t) = g_0\big(1+\epsilon_2\sin(\Omega_2 t)\big)$$
+  </div>
+  <p>
+    con $\epsilon_1,\epsilon_2\ll 1$ y $\omega_0=\sqrt{g_0/l_0}$ la frecuencia
+    natural sin perturbar. Definí los parámetros adimensionales de
+    adiabaticidad:
+  </p>
+  $$\eta_1 = \frac{\Omega_1}{\omega_0}, \qquad \eta_2 = \frac{\Omega_2}{\omega_0}$$
+  <p>
+    con $\eta_i\ll 1$ correspondiendo al régimen adiabático y
+    $\eta_i \gtrsim 1$ al no adiabático.
+  </p>
+
+  <h3>2.6 Parámetros de la simulación</h3>
+  <table class="report-param-table">
+    <thead>
+      <tr><th>Parámetro</th><th>Símbolo</th><th>Valor / rango</th><th>Rol físico</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>$m$</td><td>Masa del péndulo</td><td>$1$ kg (fijo)</td>
+        <td>Escala de energía e inercia rotacional $ml^2$</td>
+      </tr>
+      <tr>
+        <td>$l_0$</td><td>Longitud base</td><td>$1$ m (fijo)</td>
+        <td>Junto con $g_0$ fija $\omega_0=\sqrt{g_0/l_0}$</td>
+      </tr>
+      <tr>
+        <td>$g_0$</td><td>Gravedad base</td><td>$9.8$ m/s² (fijo)</td>
+        <td>Junto con $l_0$ fija $\omega_0$</td>
+      </tr>
+      <tr>
+        <td>$\epsilon_1$</td><td>Amplitud de $l(t)$</td><td>$0$–$0.3$ (def. $0.1$)</td>
+        <td>Qué tanto se estira/encoge la cuerda</td>
+      </tr>
+      <tr>
+        <td>$\epsilon_2$</td><td>Amplitud de $g_{\text{eff}}(t)$</td><td>$0$–$0.3$ (def. $0.1$)</td>
+        <td>Qué tanto varía la gravedad efectiva</td>
+      </tr>
+      <tr>
+        <td>$\Omega_1$</td><td>Frecuencia de $l(t)$</td><td>$0.001$–$3\,\omega_0$ (def. $0.05\,\omega_0$, log)</td>
+        <td>Determina $\eta_1=\Omega_1/\omega_0$</td>
+      </tr>
+      <tr>
+        <td>$\Omega_2$</td><td>Frecuencia de $g_{\text{eff}}(t)$</td><td>$0.001$–$3\,\omega_0$ (def. $0.05\,\omega_0$, log)</td>
+        <td>Determina $\eta_2=\Omega_2/\omega_0$</td>
+      </tr>
+      <tr>
+        <td>$\theta_0$</td><td>Ángulo inicial</td><td>$0.05$–$0.5$ rad (def. $0.2$)</td>
+        <td>Condición inicial; $p_\theta(0)=0$ siempre</td>
+      </tr>
+      <tr>
+        <td>$h$</td><td>Paso RK4</td><td>$(2\pi/\omega_{\max})/200$ (adaptativo)</td>
+        <td>$\omega_{\max}=\max(\omega_0,\Omega_1,\Omega_2)$: resuelve siempre la oscilación más rápida presente</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 3. SIMULACIÓN — intro -->
+<section id="simulacion">
+  <h2><span class="sec-num">3.</span>Simulación interactiva</h2>
+  <p>
+    La simulación integra numéricamente las ecuaciones canónicas de Hamilton
+    de la sección 2.4 mediante RK4 de paso fijo (no autónomo, ya que
+    $l(t)$ y $g_{\text{eff}}(t)$ dependen explícitamente del tiempo), con el
+    paso de tiempo recalculado automáticamente para resolver siempre la
+    frecuencia más rápida presente entre $\omega_0$, $\Omega_1$ y $\Omega_2$.
+    Se visualizan simultáneamente: (i) la animación del péndulo, con la
+    longitud de la cuerda cambiando visiblemente conforme $l(t)$ varía;
+    (ii) el espacio de fase $(\theta,p_\theta)$, con una estela que muestra
+    si la órbita se deforma suavemente (adiabático) o se distorsiona de
+    forma irregular (no adiabático); y (iii) la serie temporal de
+    $I(t)/I(0)$, con una línea de referencia en $y=1$ para apreciar
+    cuánto se aparta la variable de acción de su valor inicial. Los
+    controles permiten variar $\epsilon_1$, $\epsilon_2$, $\Omega_1$,
+    $\Omega_2$ y $\theta_0$ en vivo, y muestran $\eta_1$, $\eta_2$ y
+    $\Delta I/I_0$ actualizados en cada cuadro.
+  </p>
+</section>
+
+</div><!-- /.paper -->
+
+<!-- ══════════════════════════════════════════
+     SIMULACIÓN — iframe (dark)
+══════════════════════════════════════════ -->
+<div class="sim-band">
+  <iframe
+    src="./pendulo_adiabatico.html"
+    title="Simulación interactiva: Péndulo con invariante adiabático">
+  </iframe>
+</div>
+
+<!-- ══════════════════════════════════════════
+     INFORME — PARTE 2 (blanco)
+══════════════════════════════════════════ -->
+<div class="paper paper-cont">
+
+<section id="conclusiones">
+  <h2><span class="sec-num">4.</span>Análisis y conclusiones</h2>
+  <ol class="conclusions">
+    <li>
+      <strong>Régimen adiabático.</strong> Con el botón "Régimen Adiabático"
+      ($\eta_1=\eta_2\approx 0.005$, muy por debajo de 1), la simulación
+      mantiene $\Delta I/I_0 \approx 0.001$ y el indicador de régimen marca
+      "adiabático": la variable de acción permanece prácticamente constante
+      mientras $l(t)$ y $g_{\text{eff}}(t)$ oscilan con amplitud moderada,
+      exactamente lo que predice la condición de Landau
+      $|\dot l/l|,|\dot g_{\text{eff}}/g_{\text{eff}}| \ll \omega$.
+    </li>
+    <li>
+      <strong>Régimen intermedio.</strong> Con el botón "Régimen intermedio"
+      ($\eta_1=\eta_2\approx 0.178$), $\Delta I/I_0$ crece hasta cerca de
+      $0.036$: una deriva ya apreciable pero todavía moderada, en la que la
+      elipse del espacio de fase empieza a mostrar una deformación sutil sin
+      llegar a distorsionarse de forma irregular.
+    </li>
+    <li>
+      <strong>Ruptura del invariante en el régimen súbito.</strong> Con el
+      botón "Régimen súbito (invariante roto)" ($\eta_1=\eta_2\approx 1.094$,
+      parámetros cambiando en la misma escala de tiempo que una oscilación
+      del péndulo), $\Delta I/I_0$ crece hasta cerca de $0.327$ y el
+      indicador pasa a "no adiabático": la elipse del espacio de fase deja
+      de "respirar" suavemente y se deforma de manera irregular, consistente con 
+      la pérdida genérica de la condición de adiabaticidad cuando el parámetro cambia 
+      en la misma escala de tiempo que una oscilación.
+    </li>
+    <li>
+      <strong>Caveat numérico: RK4 no es simpléctico.</strong> El integrador
+      usado no conserva estructuras del espacio de fase de forma exacta como
+      lo haría un integrador simpléctico (p. ej. leapfrog), así que una
+      deriva lenta de $\Delta I/I_0$ incluso en el régimen adiabático podría
+      contener, en parte, un componente de error numérico y no solo física
+      real. En el cuaderno de collab se explora esta limitación y se hace una prueba de convergencia sobre
+      los 3 regímenes. Se encuentra que la variación es ínfima (0.02%, 0.00% y 0.00% para adiabático, intermedio 
+      y no-adiabático respectivamente ). Esto confirma que los valores obtenidos no son artefactos numéricos de la integración numérica.
+    </li>
+    <li>
+      <strong>Reflexión pedagógica.</strong> Lo más valioso de este ejercicio
+      no fue la fórmula final, sino cuántos de los errores de derivación
+      vinieron de saltarse pasos que parecían "obvios": confundir una
+      coordenada con un parámetro, aproximar antes de usar una identidad
+      exacta, mezclar dos sistemas de coordenadas, o sustituir velocidad
+      donde iba posición. Cada uno de esos errores, revisado con calma, tenía
+      una razón física clara detrás — encontrarla fue la parte más valiosa
+      del proceso.
+    </li>
+  </ol>
+</section>
+
+<section id="referencias">
+  <h2>Referencias</h2>
+  <ol class="refs">
+    <li>
+      L. D. Landau y E. M. Lifshitz,
+      <em>Mecánica</em>, 3.ª ed.
+      §49–51 (Invariantes adiabáticos).
+      Reverté, Barcelona, 1994.
+    </li>
+    <li>
+      H. Goldstein, C. P. Poole y J. L. Safko,
+      <em>Classical Mechanics</em>, 3.ª ed.
+      Cap. 12 (Canonical Transformations) y variables de acción-ángulo.
+      Addison-Wesley, San Francisco, 2002.
+    </li>
+    <li>
+      A. Werner y C. J. Eliezer,
+      <em>The Lengthening Pendulum</em>
+      (recibido 31 de mayo de 1967; revisado 28 de noviembre de 1967).
+      <a href="https://shorturl.at/OFAYO" target="_blank" rel="noopener noreferrer">Enlace al artículo</a>.
+    </li>
+    <li>
+      J. E. Littlewood,
+      <em>Lorentz's Pendulum Problem</em>,
+      Trinity College, Cambridge, England.
+      <em>Annals of Physics</em> <strong>21</strong>, 233–242 (1963).
+      <a href="referencias/littlewood1963.pdf" target="_blank" rel="noopener noreferrer">PDF disponible en este repositorio</a>.
+    </li>
+  </ol>
+</section>
+
+</div><!-- /.paper-cont -->
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="site-footer">
+  <div class="footer-loc">
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 1a5 5 0 0 0-5 5c0 3.5 5 9 5 9s5-5.5 5-9a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+    </svg>
+    <span>Medellín, Colombia · Universidad de Antioquia</span>
+  </div>
+  <a href="https://github.com/JhoanMoscoso" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    GitHub
+  </a>
+</footer>
+
+<script src="../../assets/js/nav.js"></script>
+</body>
+</html>

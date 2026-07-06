@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invariante Adiabático — Péndulo con l(t), g_eff(t) variables · Mecánica Teórica II</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   Estilos inline — tema oscuro compartido con las demás
+   simulaciones de udea/mt2/ (tennis-racket.html, tema1-osciladores.html),
+   copiados y recortados de assets/css/sim-tennis.css para mantener
+   este archivo autocontenido en un único .html.
+══════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #06090f;
+  --bg2:     #0d1117;
+  --bg3:     #161b27;
+  --border:  #1f2d42;
+  --text:    #c9d1d9;
+  --dim:     #4a5568;
+  --cyan:    #58a6ff;
+  --green:   #3fb950;
+  --red:     #f85149;
+  --orange:  #e3b341;
+  --white:   #e6edf3;
+  --r:       8px;
+  --mono:    'JetBrains Mono', 'Courier New', monospace;
+  --title:   'Syne', sans-serif;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ─── HEADER ─────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px 28px 14px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0a0f1e 0%, var(--bg) 100%);
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
+
+.subtitle {
+  color: var(--text);
+  font-size: 10.5px;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
+
+.badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 0.5px;
+  transition: all 0.4s ease;
+  white-space: nowrap;
+}
+.badge.stable   { color: var(--green);  border-color: var(--green);  background: rgba(63,185,80,0.08); }
+.badge.unstable { color: var(--red);    border-color: var(--red);    background: rgba(248,81,73,0.08); }
+.badge.boundary { color: var(--orange); border-color: var(--orange); background: rgba(227,179,65,0.08); }
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+main {
+  display: grid;
+  grid-template-columns: 1fr 370px;
+  gap: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+}
+
+.canvas-col   { display: flex; flex-direction: column; gap: 14px; padding-right: 16px; }
+.controls-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ─── CANVAS WRAPPERS ────────────────────────────────────── */
+.canvas-wrap {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.canvas-label {
+  position: absolute;
+  top: 9px; left: 12px;
+  font-size: 9.5px;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.canvas-overlay-br {
+  position: absolute;
+  bottom: 8px; right: 10px;
+  font-size: 9px;
+  color: var(--white);
+  pointer-events: none;
+  z-index: 2;
+  text-align: right;
+  line-height: 1.8;
+}
+
+canvas { display: block; max-width: 100%; height: auto; }
+
+/* ─── PANEL / CONTROLES ──────────────────────────────────── */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+}
+
+.panel-title {
+  font-size: 9.5px;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ─── SLIDERS ────────────────────────────────────────────── */
+.param-group { margin-bottom: 13px; }
+
+.param-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.param-name { color: var(--white); font-size: 10.5px; }
+.param-val  { color: var(--white); font-size: 11px; font-weight: 600; min-width: 60px; text-align: right; }
+
+input[type="range"] {
+  width: 100%; height: 3px;
+  -webkit-appearance: none; appearance: none;
+  background: var(--border);
+  border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--cyan); border: 2px solid var(--bg2);
+  cursor: pointer; transition: transform 0.1s;
+}
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+
+/* ─── ESTELA (checkbox) ──────────────────────────────────── */
+.trail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 13px;
+  font-size: 10.5px;
+  color: var(--white);
+}
+.trail-row input[type="checkbox"] {
+  accent-color: var(--cyan);
+  width: 14px; height: 14px; cursor: pointer;
+}
+
+/* ─── CONDITION BOX ──────────────────────────────────────── */
+.condition-box {
+  margin-top: 14px;
+  padding: 11px 13px;
+  background: var(--bg3);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.cond-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5px 0;
+  font-size: 11px;
+}
+.cond-label { color: var(--white); font-size: 10.5px; }
+.cond-val   { color: var(--white); font-weight: 600; }
+
+.verdict-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 8px;
+  margin-top: 7px;
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: color 0.3s;
+}
+
+/* ─── BOTONES ────────────────────────────────────────────── */
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+
+button {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+button:hover { border-color: var(--cyan); color: var(--cyan); }
+button.primary { border-color: var(--cyan); color: var(--cyan); background: rgba(88,166,255,0.06); }
+
+/* ─── BOTONES DE RÉGIMEN (PRESETS) ───────────────────────── */
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.preset-btn {
+  padding: 9px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.preset-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ─── VELOCIDAD DE SIMULACIÓN ────────────────────────────── */
+.speed-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  margin-bottom: 13px;
+  font-size: 10.5px;
+  color: var(--white);
+}
+.speed-row input { flex: 1; }
+
+/* ─── NOTA EXPLICATIVA ───────────────────────────────────── */
+.notes {
+  max-width: 1120px;
+  margin: 22px auto 0;
+  padding: 0 20px;
+}
+.notes .panel { padding: 20px 24px; }
+.notes h2 {
+  font-family: var(--title);
+  font-size: 15px;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+.notes p {
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.75;
+  margin-bottom: 12px;
+}
+.notes p:last-child { margin-bottom: 0; }
+.notes .eta { color: var(--cyan); font-style: normal; }
+
+/* ─── CÓDIGO FUENTE ──────────────────────────────────────── */
+.code-section { max-width: 1120px; margin: 18px auto 40px; padding: 0 20px; }
+
+.code-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.code-toggle-btn:hover { border-color: var(--cyan); color: var(--text); }
+.code-icon { color: var(--cyan); font-size: 13px; }
+
+.code-container {
+  display: none;
+  margin-top: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px;
+  overflow: auto;
+  max-height: 650px;
+}
+.code-container.open { display: block; }
+
+pre {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--text);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #2a3548; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3b4d66; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; padding: 16px 16px 0; }
+  .canvas-col { padding-right: 0; }
+  header { padding: 16px 18px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ HEADER ════════════════ -->
+<header>
+  <div>
+    <h1>Invariante Adiabático — Péndulo con l(t) y g_eff(t) variables</h1>
+    <p class="subtitle">
+      Mecánica Hamiltoniana · Variables acción-ángulo · Mecánica Teórica II · U de A
+    </p>
+  </div>
+  <div id="regime-badge" class="badge stable">⟳ Calculando...</div>
+</header>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<main>
+
+  <!-- ── Columna izquierda: Canvases ── -->
+  <section class="canvas-col">
+
+    <!-- Canvas 1: Péndulo -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Péndulo — l(t) y g_eff(t) variando lentamente</span>
+      <div class="canvas-overlay-br" id="live-vals">t = 0.00 s</div>
+      <canvas id="penduloCanvas" width="680" height="360"></canvas>
+    </div>
+
+    <!-- Botones de régimen (presets) -->
+    <div class="presets-grid">
+      <button class="preset-btn" onclick="setPreset('adiabatico')">✓ Régimen Adiabático</button>
+      <button class="preset-btn" onclick="setPreset('intermedio')">≈ Régimen intermedio</button>
+      <button class="preset-btn" onclick="setPreset('subito')">✗ Régimen súbito (invariante roto)</button>
+    </div>
+
+    <!-- Canvas 2: Serie temporal I(t)/I(0) -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Variable de acción I(t)/I(0)</span>
+      <canvas id="tsCanvas" width="680" height="255"></canvas>
+    </div>
+
+  </section>
+
+  <!-- ── Columna derecha: Controles + espacio de fase ── -->
+  <section class="controls-col">
+
+    <div class="panel">
+      <div class="panel-title">Parámetros</div>
+
+      <!-- θ0 (condición inicial) -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">θ₀ <span style="color:var(--dim);font-size:10px">(cond. inicial)</span></span>
+          <span class="param-val" id="val-theta0">0.20 rad</span>
+        </div>
+        <input type="range" id="sl-theta0" min="0.05" max="0.5" step="0.01" value="0.2">
+      </div>
+
+      <!-- eps1 -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">ε₁ <span style="color:var(--dim);font-size:10px">(amplitud l(t))</span></span>
+          <span class="param-val" id="val-eps1">0.10</span>
+        </div>
+        <input type="range" id="sl-eps1" min="0" max="0.3" step="0.01" value="0.1">
+      </div>
+
+      <!-- eps2 -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">ε₂ <span style="color:var(--dim);font-size:10px">(amplitud g_eff(t))</span></span>
+          <span class="param-val" id="val-eps2">0.10</span>
+        </div>
+        <input type="range" id="sl-eps2" min="0" max="0.3" step="0.01" value="0.1">
+      </div>
+
+      <!-- Omega1 (log) -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">Ω₁ <span style="color:var(--dim);font-size:10px">(frec. de l(t))</span></span>
+          <span class="param-val" id="val-Omega1">0.050 ω₀</span>
+        </div>
+        <input type="range" id="sl-Omega1" min="0" max="1000" step="1">
+      </div>
+
+      <!-- Omega2 (log) -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">Ω₂ <span style="color:var(--dim);font-size:10px">(frec. de g_eff(t))</span></span>
+          <span class="param-val" id="val-Omega2">0.050 ω₀</span>
+        </div>
+        <input type="range" id="sl-Omega2" min="0" max="1000" step="1">
+      </div>
+
+      <!-- Velocidad de simulación -->
+      <div class="speed-row">
+        <span>Velocidad:</span>
+        <input type="range" id="sl-speed" min="1" max="20" step="1" value="5">
+        <span id="val-speed" style="color:var(--white);font-weight:600;">5×</span>
+      </div>
+
+      <!-- Estela del espacio de fase -->
+      <div class="trail-row">
+        <input type="checkbox" id="chk-trail" checked>
+        <label for="chk-trail">Mostrar estela en espacio de fase</label>
+      </div>
+
+      <!-- η1, η2, ΔI/I0 -->
+      <div class="condition-box">
+        <div class="cond-row">
+          <span class="cond-label">η₁ = Ω₁/ω₀</span>
+          <span class="cond-val" id="val-eta1">—</span>
+        </div>
+        <div class="cond-row">
+          <span class="cond-label">η₂ = Ω₂/ω₀</span>
+          <span class="cond-val" id="val-eta2">—</span>
+        </div>
+        <div class="cond-row">
+          <span class="cond-label">ΔI/I₀</span>
+          <span class="cond-val" id="val-dI">—</span>
+        </div>
+        <div class="verdict-row" id="verdict-row">
+          <span id="verdict">—</span>
+        </div>
+      </div>
+
+      <!-- Botones -->
+      <div class="btn-row">
+        <button id="btn-play" class="primary" onclick="togglePlay()">⏸ Pausar</button>
+        <button onclick="resetSim()">↺ Reiniciar</button>
+      </div>
+    </div>
+
+    <!-- Canvas 3: Espacio de fase -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Espacio de fase (θ, p_θ)</span>
+      <canvas id="phaseCanvas" width="370" height="300"></canvas>
+    </div>
+
+  </section>
+</main>
+
+<!-- ════════════════ TEXTO EXPLICATIVO ════════════════ -->
+<section class="notes">
+  <div class="panel">
+    <h2>¿Qué es un invariante adiabático?</h2>
+    <p>
+      En un sistema hamiltoniano periódico cuyos parámetros externos (aquí, la
+      longitud del péndulo l(t) y la gravedad efectiva g_eff(t)) cambian
+      <strong>lentamente</strong> comparados con el período propio de
+      oscilación, la variable de acción I = E/ω se conserva
+      aproximadamente — aunque ni la energía E(t) ni la frecuencia ω(t) lo
+      hagan por separado. Este resultado, clásico de la mecánica hamiltoniana
+      (ver Landau &amp; Lifshitz, <em>Mecánica</em>, §49–51), es la base de los
+      invariantes de acción-ángulo y explica fenómenos tan distintos como el
+      confinamiento magnético de partículas cargadas o el bombeo de energía en
+      sistemas paramétricos.
+    </p>
+    <p>
+      Los parámetros <span class="eta">η₁ = Ω₁/ω₀</span> y
+      <span class="eta">η₂ = Ω₂/ω₀</span> miden precisamente qué tan "lenta" es
+      esa variación: son la razón entre la frecuencia de modulación de cada
+      parámetro (Ω₁ para l(t), Ω₂ para g_eff(t)) y la frecuencia propia del
+      péndulo ω₀ = √(g₀/l₀). Cuando η ≪ 1 (extremo izquierdo de los sliders
+      logarítmicos) el cambio es lento frente a una oscilación del péndulo y
+      el régimen es adiabático: I(t) permanece casi constante. Cuando η ~ 1 o
+      mayor, el parámetro cambia en la misma escala de tiempo que una
+      oscilación completa, el invariante se rompe y I(t)/I(0) se aleja
+      visiblemente de 1. Mové los sliders Ω₁/Ω₂ de un extremo a otro y
+      observá cómo la elipse del espacio de fase pasa de "respirar"
+      suavemente sin cambiar de área a deformarse de forma irregular.
+    </p>
+    <p>
+      La simulación integra las ecuaciones canónicas de Hamilton con
+      Runge-Kutta de orden 4 y paso fijo (no se usa la fórmula analítica de
+      acción-ángulo), ajustando automáticamente el paso de tiempo a la
+      frecuencia más rápida presente entre ω₀, Ω₁ y Ω₂ para no perder
+      precisión numérica. El valor de ΔI/I₀ mostrado es el máximo
+      apartamiento relativo observado desde el último reinicio — no solo lo
+      visible en la ventana graficada — para que sea una medida honesta de
+      cuán bien se conserva el invariante durante toda la corrida.
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════ CÓDIGO ════════════════ -->
+<div class="code-section">
+  <button class="code-toggle-btn" onclick="toggleCode()">
+    <span class="code-icon">&lt;/&gt;</span>
+    <span id="code-btn-label">Ver código fuente comentado</span>
+    <span style="margin-left:auto;font-size:9.5px;color:var(--dim);">Hamilton · RK4 · Invariante adiabático</span>
+  </button>
+  <div class="code-container" id="code-container">
+    <pre id="code-display">// Haz clic para cargar el código...</pre>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     JAVASCRIPT — FÍSICA + INTEGRADOR + DIBUJO + UI
+════════════════════════════════════════════════════════════ -->
+<script>
+// ================================================================
+//  PÉNDULO CON INVARIANTE ADIABÁTICO
+//  Jhoan · Mecánica Teórica II · Universidad de Antioquia · 2026
+//
+//  Hamiltoniano:
+//    H(θ, p_θ; t) = p_θ² / (2 m l(t)²) + (1/2) m g_eff(t) l(t) θ²
+//
+//  Ecuaciones canónicas de Hamilton:
+//    dθ/dt   =  p_θ / (m l(t)²)
+//    dp_θ/dt = -m g_eff(t) l(t) θ
+//
+//  Perfiles de los parámetros externos:
+//    l(t)      = l0 (1 + ε₁ sin(Ω₁ t))
+//    g_eff(t)  = g0 (1 + ε₂ sin(Ω₂ t))
+//
+//  Cantidades derivadas por paso:
+//    ω(t) = √(g_eff(t)/l(t)),  E(t) = H,  I(t) = E(t)/ω(t)
+// ================================================================
+
+// ─────────────────────────────────────
+//  CONSTANTES FÍSICAS FIJAS
+// ─────────────────────────────────────
+const m  = 1;    // kg
+const l0 = 1;    // m
+const g0 = 9.8;  // m/s²
+const omega0 = Math.sqrt(g0 / l0);
+
+// ─────────────────────────────────────
+//  ESTADO REACTIVO (parámetros en vivo)
+// ─────────────────────────────────────
+let eps1   = 0.1;
+let eps2   = 0.1;
+let Omega1 = 0.05 * omega0;
+let Omega2 = 0.05 * omega0;
+let theta0 = 0.2;
+
+// ─────────────────────────────────────
+//  ESTADO DINÁMICO [θ, p_θ]
+// ─────────────────────────────────────
+let theta  = theta0;
+let pTheta = 0;
+let t      = 0;
+
+let running   = true;
+let animId    = null;
+let speedMult = 5;
+let showTrail = true;
+
+// Referencias del invariante de acción (se reinician con resetBaseline())
+let I0 = 0, minI = 0, maxI = 0;
+
+// ─────────────────────────────────────
+//  HISTORIA (buffers circulares)
+// ─────────────────────────────────────
+const MAX_TRAIL = 4000;
+const MAX_TS    = 2000;
+let trailBuf = [];  // [{theta, pTheta}] para el espacio de fase
+let tsBuf    = [];  // [{t, ratio}] para I(t)/I(0)
+
+// ─────────────────────────────────────
+//  INTEGRADOR — paso de tiempo adaptativo
+// ─────────────────────────────────────
+let DT = 0, STEPS_FRAME = 0;
+
+function computeDT() {
+  // dt resuelve la oscilación más rápida entre ω0, Ω1, Ω2
+  const wmax = Math.max(omega0, Omega1, Omega2);
+  return (2 * Math.PI / wmax) / 200;
+}
+
+function recomputeTiming() {
+  DT = computeDT();
+  const baseSubsteps = Math.max(1, Math.round((1 / 60) / DT));
+  STEPS_FRAME = baseSubsteps * speedMult;
+}
+
+// ================================================================
+//  FÍSICA — PERFILES DE PARÁMETROS Y DERIVADAS DE HAMILTON
+// ================================================================
+
+function lOf(tt)    { return l0 * (1 + eps1 * Math.sin(Omega1 * tt)); }
+function gEffOf(tt) { return g0 * (1 + eps2 * Math.sin(Omega2 * tt)); }
+function omegaOf(tt) { return Math.sqrt(gEffOf(tt) / lOf(tt)); }
+
+/**
+ * derivadas(s, tt) — lado derecho de las ecuaciones canónicas de Hamilton
+ * s = [theta, p_theta]
+ */
+function derivadas(s, tt) {
+  const [th, p] = s;
+  const l = lOf(tt), g = gEffOf(tt);
+  const dtheta  = p / (m * l * l);
+  const dpTheta = -m * g * l * th;
+  return [dtheta, dpTheta];
+}
+
+/**
+ * rk4Step(s, tt, h) — Runge-Kutta 4 no autónomo (las derivadas dependen
+ * explícitamente de t porque l(t) y g_eff(t) varían con el tiempo).
+ */
+function rk4Step(s, tt, h) {
+  const add = (a, b, f) => a.map((v, i) => v + f * b[i]);
+  const k1 = derivadas(s, tt);
+  const k2 = derivadas(add(s, k1, h * 0.5), tt + h * 0.5);
+  const k3 = derivadas(add(s, k2, h * 0.5), tt + h * 0.5);
+  const k4 = derivadas(add(s, k3, h),       tt + h);
+  return s.map((v, i) => v + (h / 6) * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]));
+}
+
+function energyOf(s, tt) {
+  const [th, p] = s;
+  const l = lOf(tt), g = gEffOf(tt);
+  return (p * p) / (2 * m * l * l) + 0.5 * m * g * l * th * th;
+}
+
+function actionOf(s, tt) {
+  return energyOf(s, tt) / omegaOf(tt);
+}
+
+// ================================================================
+//  SLIDERS LOGARÍTMICOS PARA Ω1, Ω2
+//  posición ∈ [0,1000]  →  Ω ∈ [0.001 ω0, 3 ω0]
+// ================================================================
+
+function omegaFromSlider(pos) {
+  const lo = 0.001 * omega0, hi = 3 * omega0;
+  return lo * Math.pow(hi / lo, pos / 1000);
+}
+function sliderFromOmega(omega) {
+  const lo = 0.001 * omega0, hi = 3 * omega0;
+  return Math.round(1000 * Math.log(omega / lo) / Math.log(hi / lo));
+}
+
+// ================================================================
+//  RESET Y CAMBIO DE PARÁMETROS
+// ================================================================
+
+/** Reinicia la referencia I0/minI/maxI e historia desde el estado actual. */
+function resetBaseline() {
+  trailBuf.length = 0;
+  tsBuf.length = 0;
+  I0 = actionOf([theta, pTheta], t);
+  minI = maxI = I0;
+}
+
+/** Reset completo: condición inicial, tiempo, tempo e historia. */
+function resetSim() {
+  theta = theta0;
+  pTheta = 0;
+  t = 0;
+  recomputeTiming();
+  resetBaseline();
+  drawPendulum(); drawPhaseSpace(); drawTimeSeries(); updateDisplays();
+}
+
+// ================================================================
+//  BOTONES DE RÉGIMEN (PRESETS) — Ω1 = Ω2 = factor · ω0
+// ================================================================
+
+const REGIMES = {
+  adiabatico: 0.005,
+  intermedio: 0.178,
+  subito:     1.094,
+};
+
+function setPreset(name) {
+  const factor = REGIMES[name];
+  Omega1 = factor * omega0;
+  Omega2 = factor * omega0;
+  document.getElementById('sl-Omega1').value = sliderFromOmega(Omega1);
+  document.getElementById('sl-Omega2').value = sliderFromOmega(Omega2);
+  document.getElementById('val-Omega1').textContent = (Omega1 / omega0).toFixed(3) + ' ω₀';
+  document.getElementById('val-Omega2').textContent = (Omega2 / omega0).toFixed(3) + ' ω₀';
+  resetSim();
+}
+
+// ================================================================
+//  CANVAS — REFERENCIAS
+// ================================================================
+
+const penduloCanvas = document.getElementById('penduloCanvas');
+const ctxPend = penduloCanvas.getContext('2d');
+const phaseCanvas = document.getElementById('phaseCanvas');
+const ctxPhase = phaseCanvas.getContext('2d');
+const tsCanvas = document.getElementById('tsCanvas');
+const ctxTS = tsCanvas.getContext('2d');
+
+// ================================================================
+//  RENDER — CANVAS 1: PÉNDULO
+// ================================================================
+
+function drawPendulum() {
+  const W = penduloCanvas.width, H = penduloCanvas.height;
+  ctxPend.clearRect(0, 0, W, H);
+  ctxPend.fillStyle = '#090d16'; ctxPend.fillRect(0, 0, W, H);
+
+  const scale = 200;               // px por metro
+  const cx = W / 2, pivotY = 46;
+  const l = lOf(t), g = gEffOf(t);
+
+  const bobX = cx + l * scale * Math.sin(theta);
+  const bobY = pivotY + l * scale * Math.cos(theta);
+
+  // Soporte fijo
+  ctxPend.strokeStyle = '#2a3a55'; ctxPend.lineWidth = 6; ctxPend.lineCap = 'round';
+  ctxPend.beginPath(); ctxPend.moveTo(cx - 40, pivotY - 10); ctxPend.lineTo(cx + 40, pivotY - 10); ctxPend.stroke();
+
+  const pw = 22, ph = 12;
+  ctxPend.fillStyle = '#0f1d2e'; ctxPend.strokeStyle = 'var(--cyan)';
+  ctxPend.strokeStyle = '#58a6ff'; ctxPend.lineWidth = 1.5;
+  ctxPend.beginPath();
+  ctxPend.roundRect ? ctxPend.roundRect(cx - pw/2, pivotY - ph/2, pw, ph, 4) : ctxPend.rect(cx - pw/2, pivotY - ph/2, pw, ph);
+  ctxPend.fill(); ctxPend.stroke();
+
+  // Cuerda (gradiente cyan → naranja según l(t)/l0)
+  const stretch = Math.min(1, Math.abs(l / l0 - 1) / 0.3);
+  const rodColor = `rgb(${Math.round(88 + stretch*(227-88))}, ${Math.round(166 + stretch*(179-166))}, ${Math.round(255 + stretch*(65-255))})`;
+  const rodGrad = ctxPend.createLinearGradient(cx, pivotY, bobX, bobY);
+  rodGrad.addColorStop(0, '#3b5070');
+  rodGrad.addColorStop(1, rodColor);
+  ctxPend.strokeStyle = rodGrad; ctxPend.lineWidth = 2.2; ctxPend.lineCap = 'round';
+  ctxPend.beginPath(); ctxPend.moveTo(cx, pivotY); ctxPend.lineTo(bobX, bobY); ctxPend.stroke();
+
+  // Bob
+  const R = 14;
+  const gBob = ctxPend.createRadialGradient(bobX - 3, bobY - 3, 1, bobX, bobY, R);
+  gBob.addColorStop(0, '#8fd0ff');
+  gBob.addColorStop(1, '#123a5e');
+  ctxPend.beginPath(); ctxPend.arc(bobX, bobY, R, 0, 2 * Math.PI);
+  ctxPend.fillStyle = gBob; ctxPend.fill();
+  ctxPend.strokeStyle = rodColor; ctxPend.lineWidth = 2; ctxPend.stroke();
+
+  // Vertical de referencia (equilibrio)
+  ctxPend.strokeStyle = '#58a6ff33'; ctxPend.lineWidth = 1; ctxPend.setLineDash([3, 4]);
+  ctxPend.beginPath(); ctxPend.moveTo(cx, pivotY); ctxPend.lineTo(cx, pivotY + l0 * scale * 1.35); ctxPend.stroke();
+  ctxPend.setLineDash([]);
+
+  document.getElementById('live-vals').textContent =
+    `t = ${t.toFixed(2)} s  |  θ = ${theta.toFixed(3)} rad  |  l(t) = ${l.toFixed(3)} m  |  g_eff(t) = ${g.toFixed(3)} m/s²`;
+}
+
+// ================================================================
+//  RENDER — CANVAS 2: ESPACIO DE FASE (θ, p_θ)
+// ================================================================
+
+function drawPhaseSpace() {
+  const W = phaseCanvas.width, H = phaseCanvas.height;
+  ctxPhase.clearRect(0, 0, W, H);
+  ctxPhase.fillStyle = '#0a0e16'; ctxPhase.fillRect(0, 0, W, H);
+
+  let thMax = Math.max(0.1, Math.abs(theta) * 1.3);
+  let pMax  = Math.max(0.1, Math.abs(pTheta) * 1.3);
+  trailBuf.forEach(pt => {
+    thMax = Math.max(thMax, Math.abs(pt.theta) * 1.2);
+    pMax  = Math.max(pMax, Math.abs(pt.pTheta) * 1.2);
+  });
+
+  const pad = { t: 20, b: 26, l: 46, r: 14 };
+  const toX = v => pad.l + (v + thMax) / (2 * thMax) * (W - pad.l - pad.r);
+  const toY = v => pad.t + (1 - (v + pMax) / (2 * pMax)) * (H - pad.t - pad.b);
+
+  // Grid
+  ctxPhase.strokeStyle = '#171f30'; ctxPhase.lineWidth = 1;
+  [-thMax*0.5, 0, thMax*0.5].forEach(v => {
+    ctxPhase.beginPath(); ctxPhase.moveTo(toX(v), pad.t); ctxPhase.lineTo(toX(v), H - pad.b); ctxPhase.stroke();
+  });
+  [-pMax*0.5, 0, pMax*0.5].forEach(v => {
+    ctxPhase.beginPath(); ctxPhase.moveTo(pad.l, toY(v)); ctxPhase.lineTo(W - pad.r, toY(v)); ctxPhase.stroke();
+  });
+
+  // Ejes
+  ctxPhase.strokeStyle = '#263347'; ctxPhase.lineWidth = 1.2;
+  ctxPhase.beginPath(); ctxPhase.moveTo(toX(0), pad.t); ctxPhase.lineTo(toX(0), H - pad.b); ctxPhase.stroke();
+  ctxPhase.beginPath(); ctxPhase.moveTo(pad.l, toY(0)); ctxPhase.lineTo(W - pad.r, toY(0)); ctxPhase.stroke();
+
+  // Etiquetas
+  ctxPhase.fillStyle = '#3b4d66'; ctxPhase.font = '9px JetBrains Mono, monospace';
+  ctxPhase.textAlign = 'left'; ctxPhase.fillText('θ (rad)', W - pad.r - 40, H - 6);
+  ctxPhase.save(); ctxPhase.translate(12, H / 2); ctxPhase.rotate(-Math.PI / 2);
+  ctxPhase.textAlign = 'center'; ctxPhase.fillText('p_θ', 0, 0); ctxPhase.restore();
+
+  // Estela
+  if (showTrail) {
+    const n = trailBuf.length;
+    for (let i = 0; i < n; i++) {
+      const pt = trailBuf[i];
+      const px = toX(pt.theta), py = toY(pt.pTheta);
+      const alpha = 0.15 + 0.85 * (i / n);
+      ctxPhase.fillStyle = `rgba(88, 166, 255, ${alpha})`;
+      ctxPhase.beginPath(); ctxPhase.arc(px, py, 1.4, 0, 2 * Math.PI); ctxPhase.fill();
+    }
+  }
+
+  // Punto actual
+  const curX = toX(theta), curY = toY(pTheta);
+  ctxPhase.beginPath(); ctxPhase.arc(curX, curY, 4, 0, 2 * Math.PI);
+  ctxPhase.fillStyle = '#e3b341'; ctxPhase.fill();
+  ctxPhase.strokeStyle = '#fff8'; ctxPhase.lineWidth = 1.2; ctxPhase.stroke();
+}
+
+// ================================================================
+//  RENDER — CANVAS 3: SERIE TEMPORAL I(t)/I(0)
+// ================================================================
+
+function drawTimeSeries() {
+  const W = tsCanvas.width, H = tsCanvas.height;
+  ctxTS.clearRect(0, 0, W, H);
+  ctxTS.fillStyle = '#090d16'; ctxTS.fillRect(0, 0, W, H);
+
+  const pad = { t: 20, b: 26, l: 46, r: 14 };
+  const n = tsBuf.length;
+  if (n < 2) return;
+
+  const tMin = tsBuf[0].t, tMax = tsBuf[n - 1].t;
+  const tRange = (tMax - tMin) || 1;
+
+  let rMin = 1, rMax = 1;
+  tsBuf.forEach(p => { rMin = Math.min(rMin, p.ratio); rMax = Math.max(rMax, p.ratio); });
+  const margin = Math.max(0.02, (rMax - rMin) * 0.25);
+  rMin -= margin; rMax += margin;
+  const rRange = (rMax - rMin) || 1;
+
+  const toX = tv => pad.l + (tv - tMin) / tRange * (W - pad.l - pad.r);
+  const toY = rv => pad.t + (1 - (rv - rMin) / rRange) * (H - pad.t - pad.b);
+
+  // Grid
+  ctxTS.strokeStyle = '#131e30'; ctxTS.lineWidth = 1;
+  [rMin + rRange*0.25, rMin + rRange*0.75].forEach(v => {
+    ctxTS.beginPath(); ctxTS.moveTo(pad.l, toY(v)); ctxTS.lineTo(W - pad.r, toY(v)); ctxTS.stroke();
+  });
+
+  // Línea de referencia y=1
+  ctxTS.strokeStyle = '#e3b341aa'; ctxTS.lineWidth = 1.3; ctxTS.setLineDash([4, 4]);
+  ctxTS.beginPath(); ctxTS.moveTo(pad.l, toY(1)); ctxTS.lineTo(W - pad.r, toY(1)); ctxTS.stroke();
+  ctxTS.setLineDash([]);
+
+  // Etiquetas
+  ctxTS.fillStyle = '#3b4d66'; ctxTS.font = '9px JetBrains Mono, monospace'; ctxTS.textAlign = 'right';
+  ctxTS.fillText(rMax.toFixed(3), pad.l - 3, pad.t + 8);
+  ctxTS.fillText('1.000', pad.l - 3, toY(1) + 3);
+  ctxTS.fillText(rMin.toFixed(3), pad.l - 3, H - pad.b);
+  ctxTS.textAlign = 'left'; ctxTS.fillText('t (s)', W - pad.r - 20, H - 6);
+  ctxTS.save(); ctxTS.translate(12, H / 2); ctxTS.rotate(-Math.PI / 2);
+  ctxTS.textAlign = 'center'; ctxTS.fillText('I(t)/I(0)', 0, 0); ctxTS.restore();
+
+  // Curva
+  ctxTS.strokeStyle = '#58a6ff'; ctxTS.lineWidth = 1.6; ctxTS.lineCap = 'round';
+  ctxTS.beginPath();
+  tsBuf.forEach((p, i) => {
+    const x = toX(p.t), y = toY(p.ratio);
+    i === 0 ? ctxTS.moveTo(x, y) : ctxTS.lineTo(x, y);
+  });
+  ctxTS.stroke();
+
+  const last = tsBuf[n - 1];
+  ctxTS.beginPath(); ctxTS.arc(toX(last.t), toY(last.ratio), 3.5, 0, 2 * Math.PI);
+  ctxTS.fillStyle = '#58a6ff'; ctxTS.fill();
+}
+
+// ================================================================
+//  LECTURAS NUMÉRICAS Y BADGE DE RÉGIMEN
+// ================================================================
+
+function updateDisplays() {
+  const eta1 = Omega1 / omega0;
+  const eta2 = Omega2 / omega0;
+  const deltaI = I0 !== 0 ? (maxI - minI) / I0 : 0;
+
+  document.getElementById('val-eta1').textContent = eta1.toFixed(3);
+  document.getElementById('val-eta2').textContent = eta2.toFixed(3);
+  document.getElementById('val-dI').textContent = deltaI.toFixed(4);
+
+  const etaMax = Math.max(eta1, eta2);
+  const badge = document.getElementById('regime-badge');
+  const verdict = document.getElementById('verdict');
+  const vRow = document.getElementById('verdict-row');
+
+  if (etaMax < 0.1) {
+    verdict.textContent = 'Régimen adiabático — I(t) casi constante';
+    verdict.style.color = 'var(--green)';
+    badge.textContent = '✓ Régimen adiabático';
+    badge.className = 'badge stable';
+    vRow.style.borderTopColor = 'var(--green)';
+  } else if (etaMax < 0.5) {
+    verdict.textContent = 'Régimen intermedio';
+    verdict.style.color = 'var(--orange)';
+    badge.textContent = '≈ Régimen intermedio';
+    badge.className = 'badge boundary';
+    vRow.style.borderTopColor = 'var(--orange)';
+  } else {
+    verdict.textContent = 'Régimen súbito — el invariante se rompe';
+    verdict.style.color = 'var(--red)';
+    badge.textContent = '✗ Régimen no adiabático';
+    badge.className = 'badge unstable';
+    vRow.style.borderTopColor = 'var(--red)';
+  }
+}
+
+// ================================================================
+//  BUCLE DE ANIMACIÓN
+// ================================================================
+
+function step() {
+  if (!running) return;
+
+  for (let i = 0; i < STEPS_FRAME; i++) {
+    const s = [theta, pTheta];
+    const ns = rk4Step(s, t, DT);
+    theta = ns[0]; pTheta = ns[1];
+    t += DT;
+
+    const I = actionOf([theta, pTheta], t);
+    if (I < minI) minI = I;
+    if (I > maxI) maxI = I;
+
+    if (i % 4 === 0) {
+      trailBuf.push({ theta, pTheta });
+      if (trailBuf.length > MAX_TRAIL) trailBuf.shift();
+      tsBuf.push({ t, ratio: I0 !== 0 ? I / I0 : 1 });
+      if (tsBuf.length > MAX_TS) tsBuf.shift();
+    }
+  }
+
+  drawPendulum();
+  drawPhaseSpace();
+  drawTimeSeries();
+  updateDisplays();
+
+  animId = requestAnimationFrame(step);
+}
+
+// ================================================================
+//  SLIDERS — WIRING
+// ================================================================
+
+function setupSliders() {
+  // θ0: condición inicial → reset completo al moverla
+  document.getElementById('sl-theta0').addEventListener('input', function() {
+    theta0 = parseFloat(this.value);
+    document.getElementById('val-theta0').textContent = theta0.toFixed(2) + ' rad';
+    resetSim();
+  });
+
+  // eps1, eps2: parámetros físicos en vivo → no tocan θ/p_θ/t, solo la
+  // referencia I0/historia (el péndulo sigue oscilando a través del cambio)
+  document.getElementById('sl-eps1').addEventListener('input', function() {
+    eps1 = parseFloat(this.value);
+    document.getElementById('val-eps1').textContent = eps1.toFixed(2);
+    resetBaseline();
+  });
+  document.getElementById('sl-eps2').addEventListener('input', function() {
+    eps2 = parseFloat(this.value);
+    document.getElementById('val-eps2').textContent = eps2.toFixed(2);
+    resetBaseline();
+  });
+
+  // Omega1, Omega2: sliders logarítmicos, también recalculan dt/substeps
+  document.getElementById('sl-Omega1').addEventListener('input', function() {
+    Omega1 = omegaFromSlider(parseInt(this.value, 10));
+    document.getElementById('val-Omega1').textContent = (Omega1 / omega0).toFixed(3) + ' ω₀';
+    recomputeTiming();
+    resetBaseline();
+  });
+  document.getElementById('sl-Omega2').addEventListener('input', function() {
+    Omega2 = omegaFromSlider(parseInt(this.value, 10));
+    document.getElementById('val-Omega2').textContent = (Omega2 / omega0).toFixed(3) + ' ω₀';
+    recomputeTiming();
+    resetBaseline();
+  });
+
+  // Velocidad de reproducción (no reinicia nada, solo cambia pasos/frame)
+  document.getElementById('sl-speed').addEventListener('input', function() {
+    speedMult = parseInt(this.value, 10);
+    document.getElementById('val-speed').textContent = speedMult + '×';
+    recomputeTiming();
+  });
+
+  // Estela del espacio de fase (solo controla el dibujo, el buffer sigue lleno)
+  document.getElementById('chk-trail').addEventListener('change', function() {
+    showTrail = this.checked;
+  });
+
+  // Posiciones iniciales de los sliders logarítmicos (dependen de omega0)
+  document.getElementById('sl-Omega1').value = sliderFromOmega(Omega1);
+  document.getElementById('sl-Omega2').value = sliderFromOmega(Omega2);
+  document.getElementById('val-Omega1').textContent = (Omega1 / omega0).toFixed(3) + ' ω₀';
+  document.getElementById('val-Omega2').textContent = (Omega2 / omega0).toFixed(3) + ' ω₀';
+}
+
+// ================================================================
+//  CONTROLES GENERALES
+// ================================================================
+
+function togglePlay() {
+  running = !running;
+  const btn = document.getElementById('btn-play');
+  if (running) {
+    btn.textContent = '⏸ Pausar';
+    btn.className = 'primary';
+    animId = requestAnimationFrame(step);
+  } else {
+    btn.textContent = '▶ Reanudar';
+    btn.className = '';
+    cancelAnimationFrame(animId);
+  }
+}
+
+// ================================================================
+//  CÓDIGO FUENTE TOGGLE
+// ================================================================
+
+let codeLoaded = false;
+
+function toggleCode() {
+  const container = document.getElementById('code-container');
+  const label = document.getElementById('code-btn-label');
+  const isOpen = container.classList.toggle('open');
+  label.textContent = isOpen ? 'Ocultar código fuente' : 'Ver código fuente comentado';
+  if (isOpen && !codeLoaded) {
+    document.getElementById('code-display').textContent = document.documentElement.outerHTML;
+    codeLoaded = true;
+  }
+}
+
+// ================================================================
+//  INICIALIZACIÓN
+// ================================================================
+
+setupSliders();
+resetSim();
+step();
+
+</script>
+</body>
+</html>
