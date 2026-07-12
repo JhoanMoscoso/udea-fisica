@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correcciones relativistas del GPS — Tarea · Relatividad Especial y General</title>
+
+<!-- ── MathJax 3 ── -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath:  [['$', '$'], ['\\(', '\\)']],
+    displayMath: [['$$', '$$'], ['\\[', '\\]']],
+    tags: 'ams',
+    macros: {
+      dd:   '\\mathrm{d}',
+      half: '\\tfrac{1}{2}'
+    }
+  },
+  options: { skipHtmlTags: ['script','noscript','style','textarea'] }
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+
+<!-- ── Fonts: Crimson Pro (informe) + JetBrains Mono (código/tablas) ── -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+<!-- Estilos -->
+<link rel="stylesheet" href="../../assets/css/informe.css">
+<!-- Site nav styles -->
+<link rel="stylesheet" href="../../assets/css/tarea1-nav.css">
+</head>
+<body>
+
+<!-- ═══════════ SITE NAV ═══════════ -->
+<nav class="site-nav">
+  <a href="../../index.html" class="site-nav-logo">Spatial <span>Ginkgo</span></a>
+  <ul class="site-nav-links">
+    <li><a href="../../udea/index.html">UdeA</a></li>
+    <li><a href="../../proyectos/index.html">Proyectos</a></li>
+    <li>
+      <a href="https://github.com/JhoanMoscoso" target="_blank" rel="noopener noreferrer" class="nav-ext">
+        GitHub ↗
+      </a>
+    </li>
+  </ul>
+</nav>
+
+<nav class="site-breadcrumb" aria-label="Navegación de migas de pan">
+  <a href="../../udea/index.html">UdeA</a>
+  <span class="crumb-sep" aria-hidden="true">›</span>
+  <a href="../../udea/index.html">Relatividad Especial y General</a>
+  <span class="crumb-sep" aria-hidden="true">›</span>
+  <span class="crumb-current">Correcciones relativistas del GPS</span>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     INFORME — PARTE 1 (blanco)
+══════════════════════════════════════════ -->
+<div class="paper">
+
+<header class="report-header">
+  <h1>Correcciones relativistas en el Sistema de<br>Posicionamiento Global (GPS)</h1>
+  <p class="subtitle">
+    Dilatación temporal gravitacional y cinemática en la aproximación de campo débil:
+    por qué el reloj de un satélite GPS adelanta $\sim 38\ \mu$s cada día
+  </p>
+  <div class="meta-grid">
+    <div>Curso: <span>Relatividad Especial y General</span></div>
+    <div>Docente: <span>Jorge Mahecha Gómez</span></div>
+    <div>Institución: <span>Universidad de Antioquia</span></div>
+  </div>
+</header>
+
+<!-- 1. PLANTEAMIENTO Y OBJETIVOS -->
+<section id="planteamiento">
+  <h2><span class="sec-num">1.</span>Planteamiento y objetivos</h2>
+  <p>
+    El Sistema de Posicionamiento Global determina la posición de un receptor en la
+    superficie terrestre midiendo el tiempo de vuelo de señales emitidas por una
+    constelación de satélites cuyos relojes atómicos están sincronizados. La posición
+    se obtiene, en esencia, multiplicando esos intervalos de tiempo por la velocidad de
+    la luz: un error de tiempo $\Delta\tau$ se traduce directamente en un error de
+    distancia $c\,\Delta\tau$. Como $c\approx 3\times10^{8}$ m/s, un desfase de apenas
+    <strong>un microsegundo equivale a unos 300 metros</strong> de error de posición.
+    Esta sensibilidad extrema es la que hace que el GPS sea uno de los pocos sistemas
+    de ingeniería de uso cotidiano en los que <em>ignorar</em> la relatividad lo
+    volvería inservible en cuestión de minutos.
+  </p>
+  <p>
+    Los relojes de los satélites están sometidos a dos efectos relativistas de signo
+    opuesto respecto a un reloj en la superficie. Por un lado, la <strong>relatividad
+    especial</strong> (RE) predice que un reloj en movimiento marcha más lento: el
+    satélite, que orbita a unos $3.9$ km/s, ve su reloj <em>atrasarse</em>. Por otro,
+    la <strong>relatividad general</strong> (RG) predice que un reloj situado a mayor
+    potencial gravitacional —más lejos de la masa terrestre— marcha más rápido: a
+    $20\,200$ km de altitud el satélite está en un campo mucho más débil que la
+    superficie, así que su reloj tiende a <em>adelantarse</em>. La pregunta central de
+    esta tarea es cuál de los dos efectos domina, cuánto vale el resultado neto y qué
+    error acumularía el sistema si no se corrigiera.
+  </p>
+  <p>
+    Históricamente, la magnitud de estas correcciones fue objeto de debate durante el
+    diseño del sistema en los años setenta: no todos los ingenieros estaban convencidos
+    de que un efecto tan pequeño hubiera de tenerse en cuenta, hasta el punto de que los
+    primeros satélites llevaron un sintetizador de frecuencia que podía activarse o no.
+    La corrección resultó ser real y perfectamente medible, y hoy los relojes se ajustan
+    deliberadamente en fábrica para compensarla. La exposición moderna de referencia es
+    la de N. Ashby (2003).
+  </p>
+  <p><strong>Objetivos de la tarea:</strong></p>
+  <ul style="margin: 0 0 14px 20px; text-align: justify;">
+    <li>Derivar, desde la métrica de campo débil y sin saltar pasos, la razón entre el
+      tiempo propio de un reloj y el tiempo coordenado, a primer orden en $\Phi/c^2$ y
+      $v^2/c^2$.</li>
+    <li>Separar la contribución cinemática (RE) de la gravitacional (RG) y evaluar cada
+      una numéricamente para la órbita GPS.</li>
+    <li>Calcular el desfase neto por día y el error de posición asociado si no se
+      corrige.</li>
+    <li>Determinar la altitud a la que ambos efectos se cancelan y explicar el cambio de
+      signo del resultado neto por debajo y por encima de ella.</li>
+  </ul>
+  <p>
+    Se puede consultar
+    <a href="https://colab.research.google.com/drive/1wMHUiKHEKH_ReEKtChCW3eECqnAoCHpv?usp=sharing" target="_blank" rel="noopener noreferrer">este cuaderno de Google Colab</a>
+    con un borrador de los cálculos numéricos. La simulación interactiva de la sección 3
+    la construí con JavaScript vanilla sobre un <code>&lt;canvas&gt;</code> de HTML, con
+    apoyo del modelo Claude; en ella se integran en vivo las tasas RE, RG y neta, y se
+    visualiza cómo el desfase acumulado —y el error de posición asociado— crece con el
+    tiempo para distintas altitudes orbitales.
+  </p>
+  <p>
+    Se puede hallar un video introductorio muy interesante sobre los relojes atómicos y
+    el funcionamiento del GPS aquí:
+    <a href="https://www.youtube.com/watch?v=p2BxAu6WZI8" target="_blank" rel="noopener noreferrer">youtube.com/watch?v=p2BxAu6WZI8</a>.
+  </p>
+</section>
+
+<!-- 2. MARCO TEÓRICO -->
+<section id="teoria">
+  <h2><span class="sec-num">2.</span>Marco teórico</h2>
+
+  <h3>2.1 Métrica de campo débil y tiempo propio</h3>
+  <p>
+    Alrededor de una masa como la Tierra el campo gravitacional es débil
+    ($|\Phi|/c^2 \sim 10^{-9} \ll 1$), de modo que la métrica del espacio-tiempo se
+    aparta muy poco de la de Minkowski. En coordenadas cuasi-cartesianas y con el
+    potencial newtoniano $\Phi$ (con la convención $\Phi<0$ y $\Phi\to 0$ en el
+    infinito), esa desviación se escribe:
+  </p>
+  <div class="eq-box">
+    <div class="eq-label">Métrica de campo débil</div>
+    $$\dd s^2 = -\left(1+\frac{2\Phi}{c^2}\right)c^2\,\dd t^2 + \left(1-\frac{2\Phi}{c^2}\right)\dd\vec{x}^{\,2}$$
+  </div>
+  <p>
+    El tiempo propio $\dd\tau$ que mide un reloj físico que sigue una trayectoria dada
+    se relaciona con el intervalo por $c^2\,\dd\tau^2 = -\dd s^2$ (para trayectorias
+    tipo tiempo). Sustituyendo la métrica:
+  </p>
+  $$c^2\,\dd\tau^2 = \left(1+\frac{2\Phi}{c^2}\right)c^2\,\dd t^2 - \left(1-\frac{2\Phi}{c^2}\right)\dd\vec{x}^{\,2}$$
+  <p>
+    Para un reloj que se mueve con velocidad $\vec v$ en el sistema de coordenadas,
+    $\dd\vec{x}^{\,2} = v^2\,\dd t^2$. Factorizando $c^2\,\dd t^2$ en el lado derecho:
+  </p>
+  $$c^2\,\dd\tau^2 = c^2\,\dd t^2\left[\left(1+\frac{2\Phi}{c^2}\right) - \left(1-\frac{2\Phi}{c^2}\right)\frac{v^2}{c^2}\right]$$
+
+  <h3>2.2 Expansión a primer orden</h3>
+  <p>
+    Divido entre $c^2\,\dd t^2$ y tomo la raíz para despejar $\dd\tau/\dd t$:
+  </p>
+  $$\frac{\dd\tau}{\dd t} = \sqrt{\,1 + \frac{2\Phi}{c^2} - \frac{v^2}{c^2} + \frac{2\Phi}{c^2}\frac{v^2}{c^2}\,}$$
+  <p>
+    Cada uno de los términos pequeños es del orden de $10^{-9}$ o menor, así que
+    conservo solo primer orden. El término cruzado
+    $\tfrac{2\Phi}{c^2}\tfrac{v^2}{c^2}\sim 10^{-18}$ es un producto de dos cantidades
+    pequeñas y se descarta:
+  </p>
+  $$\frac{\dd\tau}{\dd t} \approx \sqrt{\,1 + \frac{2\Phi}{c^2} - \frac{v^2}{c^2}\,}$$
+  <p>
+    Ahora uso la expansión $\sqrt{1+x}\approx 1+\half x$ válida para $|x|\ll 1$, con
+    $x = \tfrac{2\Phi}{c^2} - \tfrac{v^2}{c^2}$. Término a término:
+    $\half\cdot\tfrac{2\Phi}{c^2} = \tfrac{\Phi}{c^2}$ y
+    $\half\cdot\left(-\tfrac{v^2}{c^2}\right) = -\tfrac{v^2}{2c^2}$, de modo que:
+  </p>
+  <div class="eq-box">
+    <div class="eq-label">Razón entre tiempo propio y coordenado — primer orden</div>
+    $$\frac{\dd\tau}{\dd t} \approx 1 + \frac{\Phi}{c^2} - \frac{v^2}{2c^2}$$
+  </div>
+  <div class="note">
+    <strong>Lectura de los signos.</strong> Como $\Phi<0$, el término
+    $\Phi/c^2$ hace que $\dd\tau/\dd t < 1$: un reloj hundido en el pozo de potencial
+    (cerca de la masa) marcha <em>más lento</em>. Y el término cinemático
+    $-v^2/2c^2$ también es negativo: la velocidad <em>frena</em> el reloj. Lo que
+    importa para el GPS no es cada término por sí solo, sino la <em>diferencia</em>
+    entre satélite y superficie, donde los signos se combinan de forma no trivial.
+  </div>
+
+  <h3>2.3 Comparación satélite vs. tierra</h3>
+  <p>
+    Aplico la fórmula anterior a dos relojes —uno en el satélite, otro en la
+    superficie— y resto sus tasas. El "1" se cancela y queda la diferencia relativa de
+    marcha:
+  </p>
+  <div class="eq-box">
+    <div class="eq-label">Diferencia de marcha satélite − tierra</div>
+    $$\frac{\Delta\tau_{\text{sat}} - \Delta\tau_{\text{tierra}}}{\Delta t} \approx
+    \underbrace{\frac{\Phi_{\text{sat}}-\Phi_{\text{tierra}}}{c^2}}_{\text{RG (adelanta)}}
+    \;\underbrace{-\;\frac{v_{\text{sat}}^2 - v_{\text{tierra}}^2}{2c^2}}_{\text{RE (atrasa)}}$$
+  </div>
+  <p>
+    Con el potencial newtoniano $\Phi = -GM/r$ y, para una órbita circular, la velocidad
+    orbital $v_{\text{sat}} = \sqrt{GM/r}$ (de igualar la fuerza gravitacional a la
+    centrípeta). Como primera aproximación desprecio la velocidad de rotación del reloj
+    de superficie ($v_{\text{tierra}}\approx 0$); su inclusión es un refinamiento que se
+    comenta en la sección 4.
+  </p>
+
+  <h3>2.4 Término de relatividad especial (velocidad)</h3>
+  <p>
+    Con $v_{\text{tierra}}\approx 0$, la contribución cinemática es
+    $-v_{\text{sat}}^2/(2c^2)$. Usando $v_{\text{sat}}^2 = GM/r$:
+  </p>
+  $$\left(\frac{\Delta\tau}{\Delta t}\right)_{\text{RE}} = -\frac{v_{\text{sat}}^2}{2c^2} = -\frac{GM}{2rc^2}$$
+  <p>
+    Evaluando con $GM_\oplus = 3.986\times10^{14}$ m³/s², $r_{\text{GPS}} = 2.656\times10^{7}$ m
+    y $c = 2.998\times10^{8}$ m/s:
+  </p>
+  $$\left(\frac{\Delta\tau}{\Delta t}\right)_{\text{RE}} = -\frac{3.986\times10^{14}}{2\,(2.656\times10^{7})(2.998\times10^{8})^2} \approx -8.35\times10^{-11}$$
+  <p>
+    Es una fracción adimensional negativa: el reloj del satélite pierde $8.35\times10^{-11}$ s
+    por cada segundo. Multiplicando por los $86\,400$ s de un día:
+  </p>
+  $$-8.35\times10^{-11}\times 86\,400\ \text{s} \approx \mathbf{-7.2\ \mu s/día}$$
+
+  <h3>2.5 Término de relatividad general (potencial)</h3>
+  <p>
+    La contribución gravitacional es $(\Phi_{\text{sat}}-\Phi_{\text{tierra}})/c^2$. Con
+    $\Phi = -GM/r$, evaluado en $r$ (satélite) y $R_\oplus$ (superficie):
+  </p>
+  $$\left(\frac{\Delta\tau}{\Delta t}\right)_{\text{RG}} = \frac{1}{c^2}\left(-\frac{GM}{r} + \frac{GM}{R_\oplus}\right) = \frac{GM}{c^2}\left(\frac{1}{R_\oplus} - \frac{1}{r}\right)$$
+  <p>
+    Como $r > R_\oplus$, el paréntesis es positivo: el reloj del satélite adelanta.
+    Evaluando con $R_\oplus = 6.371\times10^{6}$ m:
+  </p>
+  $$\left(\frac{\Delta\tau}{\Delta t}\right)_{\text{RG}} = \frac{3.986\times10^{14}}{(2.998\times10^{8})^2}\left(\frac{1}{6.371\times10^{6}} - \frac{1}{2.656\times10^{7}}\right) \approx +5.29\times10^{-10}$$
+  <p>
+    Por día:
+  </p>
+  $$+5.29\times10^{-10}\times 86\,400\ \text{s} \approx \mathbf{+45.7\ \mu s/día}$$
+
+  <h3>2.6 Combinación y error de posición</h3>
+  <p>
+    El efecto neto es la suma de ambas contribuciones. La RG (que adelanta) domina
+    ampliamente sobre la RE (que atrasa):
+  </p>
+  <div class="eq-box">
+    <div class="eq-label">Desfase neto por día</div>
+    $$\left(\frac{\Delta\tau}{\Delta t}\right)_{\text{neto}} = +45.7 - 7.2 \approx \mathbf{+38.5\ \mu s/día}$$
+  </div>
+  <p>
+    Es decir, el reloj del satélite <strong>adelanta</strong> unos $38.5$ microsegundos
+    cada día respecto al de la superficie. Este desfase se traduce en un error de
+    posición multiplicándolo por $c$:
+  </p>
+  $$\text{error} = c\cdot\Delta\tau \approx (3\times10^{8}\ \text{m/s})(38.5\times10^{-6}\ \text{s}) \approx \mathbf{11.5\ km/día}$$
+  <p>
+    Un sistema de navegación que acumulara <strong>11.5 km de error cada día</strong>
+    sería completamente inútil para su propósito: de ahí que la corrección relativista
+    esté integrada de fábrica en cada satélite, ajustando la frecuencia de su reloj para
+    que, visto desde tierra, marche al ritmo correcto.
+  </p>
+
+  <h3>2.7 Altura de cancelación</h3>
+  <p>
+    Como RE y RG tienen signos opuestos y dependencias distintas del radio, existe una
+    altitud a la que se cancelan exactamente. Igualo las magnitudes (RG = |RE|):
+  </p>
+  $$\frac{GM}{c^2}\left(\frac{1}{R_\oplus} - \frac{1}{r}\right) = \frac{GM}{2rc^2}$$
+  <p>
+    Cancelo el factor común $GM/c^2$ y despejo. Multiplicando ambos lados por $r$:
+  </p>
+  $$\frac{r}{R_\oplus} - 1 = \frac{1}{2} \quad\Longrightarrow\quad \frac{r}{R_\oplus} = \frac{3}{2}$$
+  <div class="eq-box">
+    <div class="eq-label">Radio de cancelación (RE = RG)</div>
+    $$r_{\text{null}} = \frac{3}{2}R_\oplus \approx 9.557\times10^{6}\ \text{m}\quad(\text{altitud}\approx 3186\ \text{km})$$
+  </div>
+  <p>
+    Por <strong>debajo</strong> de esta altura (órbitas bajas, LEO) domina la RE y el
+    reloj del satélite atrasa (neto negativo); por <strong>encima</strong> —como la
+    órbita GPS— domina la RG y el reloj adelanta (neto positivo). La simulación permite
+    barrer la altitud y ver el resultado neto cambiar de signo al cruzar este punto.
+  </p>
+
+  <h3>2.8 Parámetros de la simulación</h3>
+  <table class="report-param-table">
+    <thead>
+      <tr><th>Símbolo</th><th>Significado</th><th>Valor / rango</th><th>Rol físico</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>$c$</td><td>Velocidad de la luz</td><td>$2.998\times10^{8}$ m/s (fijo)</td>
+        <td>Convierte tiempo en distancia y fija la escala de los efectos</td>
+      </tr>
+      <tr>
+        <td>$GM_\oplus$</td><td>Parámetro gravitacional</td><td>$3.986\times10^{14}$ m³/s² (fijo)</td>
+        <td>Determina $\Phi=-GM/r$ y $v=\sqrt{GM/r}$</td>
+      </tr>
+      <tr>
+        <td>$R_\oplus$</td><td>Radio terrestre</td><td>$6.371\times10^{6}$ m (fijo)</td>
+        <td>Potencial del reloj de superficie; base de la altitud</td>
+      </tr>
+      <tr>
+        <td>$r$</td><td>Radio orbital</td><td>$R_\oplus$–$\sim 4R_\oplus$ (slider)</td>
+        <td>Único parámetro libre: fija $v$, $\Phi$ y las tres tasas</td>
+      </tr>
+      <tr>
+        <td>$r_{\text{GPS}}$</td><td>Órbita GPS</td><td>$2.656\times10^{7}$ m (alt. $\approx 20\,200$ km)</td>
+        <td>Preset principal; neto $\approx +38.5\ \mu$s/día</td>
+      </tr>
+      <tr>
+        <td>$v_{\text{GPS}}$</td><td>Velocidad orbital GPS</td><td>$\sqrt{GM/r}\approx 3.87\times10^{3}$ m/s</td>
+        <td>Fija la contribución cinemática RE</td>
+      </tr>
+      <tr>
+        <td>$r_{\text{null}}$</td><td>Radio de cancelación</td><td>$1.5\,R_\oplus\approx 9.557\times10^{6}$ m</td>
+        <td>Neto $\approx 0$; frontera del cambio de signo</td>
+      </tr>
+      <tr>
+        <td>—</td><td>Aceleración temporal</td><td>$1$ s sim $\to$ hasta $\sim N$ h reales (slider)</td>
+        <td>Amplifica el desfase para hacerlo visible en pantalla</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 3. SIMULACIÓN — intro -->
+<section id="simulacion">
+  <h2><span class="sec-num">3.</span>Simulación interactiva</h2>
+  <p>
+    La simulación integra en vivo las tres tasas derivadas en la sección 2 —
+    $\text{RE}=-GM/(2rc^2)$, $\text{RG}=(GM/c^2)(1/R_\oplus-1/r)$ y su suma— para una
+    altitud orbital que el usuario controla con un slider. Se visualizan
+    simultáneamente: (i) la Tierra con un satélite orbitando a un radio escalado
+    visualmente (la física se calcula siempre con los metros reales), etiquetado con la
+    altitud actual; (ii) dos "relojes" —tierra y satélite— cuya diferencia de tiempo
+    propio $\Delta\tau=\tau_{\text{sat}}-\tau_{\text{tierra}}$ se acumula y se muestra en
+    ns$\to\mu$s, junto con el error de posición $c\,\Delta\tau$ en m$\to$km; (iii) la
+    descomposición numérica y en barra de las contribuciones RE (hacia abajo) y RG
+    (hacia arriba); y (iv) una gráfica del desfase acumulado frente al tiempo con tres
+    líneas (RE en rojo, RG en verde, neto en cian) y una referencia en cero. Un slider de
+    aceleración temporal amplifica el efecto para hacerlo visible, y tres presets —GPS
+    real, órbita baja LEO y altura de cancelación— permiten comprobar cómo el resultado
+    neto cambia de signo al cruzar $r=\tfrac32 R_\oplus$.
+  </p>
+</section>
+
+</div><!-- /.paper -->
+
+<!-- ══════════════════════════════════════════
+     SIMULACIÓN — iframe (dark)
+══════════════════════════════════════════ -->
+<div class="sim-band">
+  <iframe
+    src="./gps_relatividad.html"
+    title="Simulación: correcciones relativistas del GPS">
+  </iframe>
+</div>
+
+<!-- ══════════════════════════════════════════
+     INFORME — PARTE 2 (blanco)
+══════════════════════════════════════════ -->
+<div class="paper paper-cont">
+
+<section id="conclusiones">
+  <h2><span class="sec-num">4.</span>Análisis y conclusiones</h2>
+  <ol class="conclusions">
+    <li>
+      <strong>El signo neto lo decide la gravedad.</strong> Para la órbita GPS, la
+      corrección gravitacional ($+45.7\ \mu$s/día) supera con creces a la cinemática
+      ($-7.2\ \mu$s/día), de modo que el reloj del satélite <em>adelanta</em> un neto de
+      $+38.5\ \mu$s/día. La intuición ingenua "todo reloj en movimiento atrasa" es
+      correcta pero incompleta: a gran altitud, escapar del pozo de potencial pesa más
+      que la velocidad orbital.
+    </li>
+    <li>
+      <strong>El cruce RE/RG y la altura de cancelación.</strong> Como las dos tasas
+      dependen del radio de forma distinta ($\text{RE}\propto -1/r$ frente a
+      $\text{RG}\propto 1/R_\oplus-1/r$), existe una altitud
+      $r=\tfrac32 R_\oplus\approx 3186$ km donde se cancelan. Por debajo (órbitas bajas)
+      domina la RE y el neto es negativo; por encima domina la RG. La simulación lo
+      confirma: al arrastrar el slider de altitud a través de ese punto, el resultado
+      neto y el badge de estado cambian de signo.
+    </li>
+    <li>
+      <strong>La magnitud del error acumulado justifica todo.</strong> Sin corregir, el
+      desfase de $38.5\ \mu$s/día produce un error de posición de $c\,\Delta\tau\approx
+      11.5$ km cada día. Un sistema pensado para localizar con precisión de metros se
+      degradaría a la escala de una ciudad en 24 horas. Por eso la corrección no es un
+      lujo académico sino un requisito de ingeniería, integrado ajustando la frecuencia
+      del reloj a bordo antes del lanzamiento.
+    </li>
+    <li>
+      <strong>Perspectivas y refinamientos.</strong> El cálculo presentado es una primera
+      aproximación que puede afinarse en varias direcciones:
+      <ul style="margin: 8px 0 0 20px;">
+        <li><em>Rotación terrestre:</em> el reloj de superficie no está en reposo; su
+          velocidad de rotación añade una pequeña contribución cinemática que aquí se
+          despreció.</li>
+        <li><em>Excentricidad orbital:</em> las órbitas GPS no son perfectamente
+          circulares, por lo que $r$ y $v$ varían a lo largo de cada órbita y aparece una
+          corrección periódica que el receptor debe aplicar.</li>
+        <li><em>Efecto Sagnac:</em> la propia rotación de la Tierra durante el tiempo de
+          vuelo de la señal introduce un término adicional en la sincronización de
+          relojes distribuidos.</li>
+        <li><em>Relojes atómicos ópticos:</em> con la precisión actual de los relojes
+          ópticos ($\sim 10^{-18}$) estos efectos son medibles como sensores de altitud,
+          abriendo la geodesia relativista.</li>
+      </ul>
+    </li>
+    <li>
+      <strong>Reflexión pedagógica.</strong> Lo instructivo de este problema es que dos
+      efectos "pequeños" ($\sim 10^{-10}$) producen, integrados en el tiempo y
+      amplificados por $c$, una consecuencia macroscópica de kilómetros. Desarrollar la
+      derivación sin saltar pasos —en particular, cuidar los signos de $\Phi$ y del
+      término cinemático, y descartar el término cruzado solo <em>después</em> de
+      identificarlo— fue clave para no equivocar el signo del resultado neto.
+    </li>
+  </ol>
+</section>
+
+<section id="referencias">
+  <h2>Referencias</h2>
+  <ol class="refs">
+    <li>
+      N. Ashby,
+      <em>Relativity in the Global Positioning System</em>,
+      Living Reviews in Relativity <strong>6</strong>, 1 (2003).
+      <a href="https://link.springer.com/article/10.12942/lrr-2003-1" target="_blank" rel="noopener noreferrer">Enlace al artículo</a>.
+    </li>
+    <li>
+      L. D. Landau y E. M. Lifshitz,
+      <em>Teoría Clásica de Campos</em>, 2.ª ed.
+      §84–88 (Campo gravitacional débil y su acción sobre relojes).
+      Reverté, Barcelona.
+    </li>
+    <li>
+      Tesis de maestría sobre relatividad general y el GPS,
+      <em>General Relativity and the Global Positioning System</em>,
+      Cleveland State University.
+      <a href="https://engagedscholarship.csuohio.edu/" target="_blank" rel="noopener noreferrer">engagedscholarship.csuohio.edu</a>.
+    </li>
+    <li>
+      C. W. Misner, K. S. Thorne y J. A. Wheeler,
+      <em>Gravitation</em>.
+      W. H. Freeman, San Francisco, 1973 (texto estándar de relatividad general;
+      métrica de campo débil y tiempo propio).
+    </li>
+  </ol>
+</section>
+
+</div><!-- /.paper-cont -->
+
+<!-- ═══════════ FOOTER ═══════════ -->
+<footer class="site-footer">
+  <div class="footer-loc">
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 1a5 5 0 0 0-5 5c0 3.5 5 9 5 9s5-5.5 5-9a5 5 0 0 0-5-5zm0 7a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/>
+    </svg>
+    <span>Medellín, Colombia · Universidad de Antioquia</span>
+  </div>
+  <a href="https://github.com/JhoanMoscoso" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+      <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+    </svg>
+    GitHub
+  </a>
+</footer>
+
+<script src="../../assets/js/nav.js"></script>
+</body>
+</html>

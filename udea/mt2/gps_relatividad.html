@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correcciones relativistas del GPS — RE vs RG · Relatividad Especial y General</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════════════════
+   Estilos inline — tema oscuro compartido con las demás
+   simulaciones de udea/mt2/ (pendulo_adiabatico.html, tennis-racket.html),
+   copiados y recortados de assets/css/sim-tennis.css para mantener
+   este archivo autocontenido en un único .html.
+══════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:      #06090f;
+  --bg2:     #0d1117;
+  --bg3:     #161b27;
+  --border:  #1f2d42;
+  --text:    #c9d1d9;
+  --dim:     #4a5568;
+  --cyan:    #58a6ff;
+  --green:   #3fb950;
+  --red:     #f85149;
+  --orange:  #e3b341;
+  --white:   #e6edf3;
+  --r:       8px;
+  --mono:    'JetBrains Mono', 'Courier New', monospace;
+  --title:   'Syne', sans-serif;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ─── HEADER ─────────────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 18px 28px 14px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, #0a0f1e 0%, var(--bg) 100%);
+}
+
+h1 {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--white);
+  letter-spacing: -0.3px;
+}
+
+.subtitle {
+  color: var(--text);
+  font-size: 10.5px;
+  margin-top: 2px;
+  letter-spacing: 0.3px;
+}
+
+.badge {
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid;
+  letter-spacing: 0.5px;
+  transition: all 0.4s ease;
+  white-space: nowrap;
+}
+.badge.stable   { color: var(--green);  border-color: var(--green);  background: rgba(63,185,80,0.08); }
+.badge.unstable { color: var(--red);    border-color: var(--red);    background: rgba(248,81,73,0.08); }
+.badge.boundary { color: var(--orange); border-color: var(--orange); background: rgba(227,179,65,0.08); }
+
+/* ─── LAYOUT ─────────────────────────────────────────────── */
+main {
+  display: grid;
+  grid-template-columns: 1fr 370px;
+  gap: 0;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 20px 20px 0;
+}
+
+.canvas-col   { display: flex; flex-direction: column; gap: 14px; padding-right: 16px; }
+.controls-col { display: flex; flex-direction: column; gap: 14px; }
+
+/* ─── CANVAS WRAPPERS ────────────────────────────────────── */
+.canvas-wrap {
+  position: relative;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.canvas-label {
+  position: absolute;
+  top: 9px; left: 12px;
+  font-size: 9.5px;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.canvas-overlay-br {
+  position: absolute;
+  bottom: 8px; right: 10px;
+  font-size: 9px;
+  color: var(--white);
+  pointer-events: none;
+  z-index: 2;
+  text-align: right;
+  line-height: 1.8;
+}
+
+canvas { display: block; max-width: 100%; height: auto; }
+
+/* ─── PANEL / CONTROLES ──────────────────────────────────── */
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+}
+
+.panel-title {
+  font-size: 9.5px;
+  color: var(--white);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ─── LECTURAS GRANDES ───────────────────────────────────── */
+.readout {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 11px 13px;
+  margin-bottom: 10px;
+}
+.readout:last-child { margin-bottom: 0; }
+.readout-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--dim);
+}
+.readout-val {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--white);
+  margin-top: 2px;
+  letter-spacing: -0.3px;
+}
+.readout-val.pos { color: var(--green); }
+.readout-val.neg { color: var(--red); }
+.readout-sub { font-size: 9.5px; color: var(--dim); margin-top: 2px; }
+
+/* ─── DESCOMPOSICIÓN RE / RG ─────────────────────────────── */
+.decomp-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 0;
+  font-size: 11px;
+}
+.decomp-row .lab { color: var(--white); font-size: 10.5px; }
+.decomp-row .v   { font-weight: 600; }
+.v.re  { color: var(--red); }
+.v.gr  { color: var(--green); }
+.v.net { color: var(--cyan); }
+
+/* ─── SLIDERS ────────────────────────────────────────────── */
+.param-group { margin-bottom: 13px; }
+
+.param-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 5px;
+}
+
+.param-name { color: var(--white); font-size: 10.5px; }
+.param-val  { color: var(--white); font-size: 11px; font-weight: 600; min-width: 60px; text-align: right; }
+
+input[type="range"] {
+  width: 100%; height: 3px;
+  -webkit-appearance: none; appearance: none;
+  background: var(--border);
+  border-radius: 2px; outline: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--cyan); border: 2px solid var(--bg2);
+  cursor: pointer; transition: transform 0.1s;
+}
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+
+/* ─── BOTONES ────────────────────────────────────────────── */
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+
+button {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+button:hover { border-color: var(--cyan); color: var(--cyan); }
+button.primary { border-color: var(--cyan); color: var(--cyan); background: rgba(88,166,255,0.06); }
+
+/* ─── BOTONES DE PRESET ──────────────────────────────────── */
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.preset-btn {
+  padding: 9px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--white);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+.preset-btn:hover { border-color: var(--cyan); color: var(--cyan); }
+
+/* ─── NOTA EXPLICATIVA ───────────────────────────────────── */
+.notes {
+  max-width: 1120px;
+  margin: 22px auto 0;
+  padding: 0 20px;
+}
+.notes .panel { padding: 20px 24px; }
+.notes h2 {
+  font-family: var(--title);
+  font-size: 15px;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+.notes p {
+  color: var(--text);
+  font-size: 12.5px;
+  line-height: 1.75;
+  margin-bottom: 12px;
+}
+.notes p:last-child { margin-bottom: 0; }
+.notes .hl { color: var(--cyan); font-style: normal; }
+
+/* ─── CÓDIGO FUENTE ──────────────────────────────────────── */
+.code-section { max-width: 1120px; margin: 18px auto 40px; padding: 0 20px; }
+
+.code-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--dim);
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.code-toggle-btn:hover { border-color: var(--cyan); color: var(--text); }
+.code-icon { color: var(--cyan); font-size: 13px; }
+
+.code-container {
+  display: none;
+  margin-top: 8px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px;
+  overflow: auto;
+  max-height: 650px;
+}
+.code-container.open { display: block; }
+
+pre {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.75;
+  color: var(--text);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* ─── SCROLLBAR ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: #2a3548; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #3b4d66; }
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media (max-width: 900px) {
+  main { grid-template-columns: 1fr; padding: 16px 16px 0; }
+  .canvas-col { padding-right: 0; }
+  header { padding: 16px 18px 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════ HEADER ════════════════ -->
+<header>
+  <div>
+    <h1>Correcciones relativistas del GPS — RE vs RG</h1>
+    <p class="subtitle">
+      Dilatación temporal cinemática y gravitacional · Campo débil · Relatividad Especial y General · U de A
+    </p>
+  </div>
+  <div id="regime-badge" class="badge stable">⟳ Calculando...</div>
+</header>
+
+<!-- ════════════════ MAIN ════════════════ -->
+<main>
+
+  <!-- ── Columna izquierda: Órbita + gráfica ── -->
+  <section class="canvas-col">
+
+    <!-- Canvas 1: Tierra + satélite -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Órbita (radio a escala visual) — Tierra y satélite</span>
+      <div class="canvas-overlay-br" id="orbit-overlay">altitud = —</div>
+      <canvas id="orbitCanvas" width="680" height="360"></canvas>
+    </div>
+
+    <!-- Presets -->
+    <div class="presets-grid">
+      <button class="preset-btn" onclick="setPreset('gps')">🛰 GPS real (20 200 km)</button>
+      <button class="preset-btn" onclick="setPreset('leo')">↓ LEO ~400 km (RE domina)</button>
+      <button class="preset-btn" onclick="setPreset('null')">≈ Cancelación (~3186 km)</button>
+    </div>
+
+    <!-- Canvas 2: Desfase acumulado vs tiempo -->
+    <div class="canvas-wrap">
+      <span class="canvas-label">Desfase acumulado vs. tiempo (RE rojo · RG verde · neto cian)</span>
+      <canvas id="chartCanvas" width="680" height="255"></canvas>
+    </div>
+
+  </section>
+
+  <!-- ── Columna derecha: Lecturas + controles ── -->
+  <section class="controls-col">
+
+    <!-- Lecturas grandes -->
+    <div class="panel">
+      <div class="panel-title">Desfase acumulado (satélite − tierra)</div>
+      <div class="readout">
+        <div class="readout-label">Δτ = τ_sat − τ_tierra</div>
+        <div class="readout-val" id="rd-dtau">0.00 ns</div>
+        <div class="readout-sub" id="rd-dtau-sub">tasa neta: — μs/día</div>
+      </div>
+      <div class="readout">
+        <div class="readout-label">Error de posición · c·Δτ</div>
+        <div class="readout-val" id="rd-poserr">0.00 m</div>
+        <div class="readout-sub" id="rd-time">tiempo físico transcurrido: 0.00 días</div>
+      </div>
+    </div>
+
+    <!-- Descomposición RE / RG -->
+    <div class="panel">
+      <div class="panel-title">Descomposición de la tasa (μs/día)</div>
+      <div class="decomp-row">
+        <span class="lab">RE — velocidad (atrasa)</span>
+        <span class="v re" id="dc-re">—</span>
+      </div>
+      <div class="decomp-row">
+        <span class="lab">RG — potencial (adelanta)</span>
+        <span class="v gr" id="dc-gr">—</span>
+      </div>
+      <div class="decomp-row" style="border-top:1px solid var(--border); margin-top:6px; padding-top:6px;">
+        <span class="lab">Neto</span>
+        <span class="v net" id="dc-net">—</span>
+      </div>
+      <div class="canvas-wrap" style="margin-top:12px;">
+        <canvas id="barCanvas" width="338" height="130"></canvas>
+      </div>
+    </div>
+
+    <!-- Parámetros -->
+    <div class="panel">
+      <div class="panel-title">Parámetros</div>
+
+      <!-- Altitud (radio orbital) -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">Altitud <span style="color:var(--dim);font-size:10px">(sobre la superficie)</span></span>
+          <span class="param-val" id="val-alt">20 200 km</span>
+        </div>
+        <input type="range" id="sl-alt" min="0" max="1000" step="1" value="500"
+               aria-label="Altitud orbital sobre la superficie terrestre">
+      </div>
+
+      <!-- Aceleración temporal -->
+      <div class="param-group">
+        <div class="param-row">
+          <span class="param-name">Aceleración temporal <span style="color:var(--dim);font-size:10px">(1 s sim →)</span></span>
+          <span class="param-val" id="val-accel">24 h</span>
+        </div>
+        <input type="range" id="sl-accel" min="1" max="240" step="1" value="24"
+               aria-label="Aceleración temporal: horas reales por segundo de simulación">
+      </div>
+
+      <!-- Botones -->
+      <div class="btn-row">
+        <button id="btn-play" class="primary" onclick="togglePlay()" aria-label="Pausar o reanudar la simulación">⏸ Pausar</button>
+        <button onclick="resetSim()" aria-label="Reiniciar el desfase acumulado">↺ Reiniciar</button>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- ════════════════ TEXTO EXPLICATIVO ════════════════ -->
+<section class="notes">
+  <div class="panel">
+    <h2>¿Por qué el reloj del satélite adelanta?</h2>
+    <p>
+      Sobre cada reloj actúan dos efectos de signo opuesto. La <span class="hl">relatividad
+      especial</span> lo frena por su velocidad orbital: la tasa cinemática es
+      RE = −GM/(2rc²), siempre negativa. La <span class="hl">relatividad general</span> lo
+      acelera por estar a mayor potencial gravitacional que la superficie: la tasa
+      gravitacional es RG = (GM/c²)(1/R⊕ − 1/r), positiva para r &gt; R⊕. El resultado
+      observado es la suma de ambas: neta = RE + RG.
+    </p>
+    <p>
+      Como RE cae como −1/r y RG crece con la altura, existe un radio de cancelación
+      <span class="hl">r = 3/2 R⊕</span> (altitud ≈ 3186 km) donde ambas se igualan y el
+      neto es cero. Por debajo domina la RE y el reloj atrasa (neto negativo); por encima
+      —como la órbita GPS a 20 200 km— domina la RG y el reloj adelanta unos +38.5 μs cada
+      día. Mové el slider de altitud a través de ese punto y observá cómo el badge de
+      estado y la barra de descomposición cambian de signo.
+    </p>
+    <p>
+      Los efectos son minúsculos (∼10⁻¹⁰), así que la simulación acelera el tiempo físico
+      —hasta cientos de horas por segundo de animación— para que el desfase Δτ crezca de
+      forma visible. Recordá que el error de posición es c·Δτ: por eso un desfase de
+      microsegundos se convierte en kilómetros de error si no se corrige.
+    </p>
+  </div>
+</section>
+
+<!-- ════════════════ CÓDIGO ════════════════ -->
+<div class="code-section">
+  <button class="code-toggle-btn" onclick="toggleCode()">
+    <span class="code-icon">&lt;/&gt;</span>
+    <span id="code-btn-label">Ver código fuente comentado</span>
+    <span style="margin-left:auto;font-size:9.5px;color:var(--dim);">RE · RG · integración del desfase</span>
+  </button>
+  <div class="code-container" id="code-container">
+    <pre id="code-display">// Haz clic para cargar el código...</pre>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     JAVASCRIPT — FÍSICA + INTEGRACIÓN + DIBUJO + UI
+════════════════════════════════════════════════════════════ -->
+<script>
+// ================================================================
+//  CORRECCIONES RELATIVISTAS DEL GPS
+//  Jhoan · Relatividad Especial y General · Universidad de Antioquia · 2026
+//
+//  Tasas de marcha (fracción adimensional dτ/dt − 1) de un reloj en
+//  órbita circular de radio r respecto a un reloj en la superficie:
+//
+//    RE (velocidad)  =  -GM / (2 r c²)                 (negativa, atrasa)
+//    RG (potencial)  =  (GM/c²) (1/R⊕ - 1/r)           (positiva, adelanta)
+//    neta            =  RE + RG
+//
+//  Desfase acumulado en un intervalo real dt_real (s):
+//    dTau += neta(r) * dt_real          (τ_sat − τ_tierra)
+//  Error de posición asociado:
+//    posErr = c * dTau
+//  Radio de cancelación (RE = RG):
+//    r_null = (3/2) R⊕
+// ================================================================
+
+// ─────────────────────────────────────
+//  CONSTANTES FÍSICAS FIJAS
+// ─────────────────────────────────────
+const GM = 3.986e14;   // m³/s²  (parámetro gravitacional terrestre)
+const c  = 2.998e8;    // m/s    (velocidad de la luz)
+const Re = 6.371e6;    // m      (radio terrestre)
+const SECONDS_PER_DAY = 86400;
+
+const R_NULL = 1.5 * Re;          // radio de cancelación RE = RG
+const R_GPS  = 2.656e7;           // órbita GPS (altitud ≈ 20 200 km)
+
+// Rango del slider de altitud → radio orbital
+const R_MIN = Re + 200e3;         // altitud mínima 200 km
+const R_MAX = 4.5 * Re;           // ~22 300 km (cubre la órbita GPS)
+
+// ─────────────────────────────────────
+//  ESTADO REACTIVO (parámetros en vivo)
+// ─────────────────────────────────────
+let r          = R_GPS;   // radio orbital actual (m)
+let accelHours = 24;      // horas físicas por segundo de simulación
+
+// ─────────────────────────────────────
+//  ESTADO DINÁMICO (acumuladores)
+// ─────────────────────────────────────
+let simTime = 0;   // tiempo físico transcurrido (s)
+let dTauSR  = 0;   // desfase acumulado por RE (s, negativo)
+let dTauGR  = 0;   // desfase acumulado por RG (s, positivo)
+let dTau    = 0;   // desfase neto = dTauSR + dTauGR (s)
+
+let satAngle = 0;  // ángulo del satélite en el dibujo (solo visual)
+let running  = true;
+let animId   = null;
+let lastTs   = null;
+
+// ─────────────────────────────────────
+//  HISTORIA para la gráfica (buffer)
+// ─────────────────────────────────────
+const MAX_PTS = 1600;
+let chartBuf = [];  // [{tDays, srUs, grUs, netUs}]
+
+// ================================================================
+//  FÍSICA — LAS TRES TASAS (fracción adimensional dτ/dt − 1)
+// ================================================================
+
+function rateSR(rr) { return -0.5 * (GM / rr) / (c * c); }        // velocidad (atrasa)
+function rateGR(rr) { return (GM / (c * c)) * (1 / Re - 1 / rr); } // potencial (adelanta)
+function rateNet(rr) { return rateSR(rr) + rateGR(rr); }
+
+// Velocidad orbital circular (para las lecturas)
+function vOrbit(rr) { return Math.sqrt(GM / rr); }
+
+// ================================================================
+//  SLIDER DE ALTITUD  ↔  RADIO ORBITAL (mapeo lineal en r)
+// ================================================================
+
+function radiusFromSlider(pos) { return R_MIN + (R_MAX - R_MIN) * (pos / 1000); }
+function sliderFromRadius(rr)  { return Math.round(1000 * (rr - R_MIN) / (R_MAX - R_MIN)); }
+
+// ================================================================
+//  CANVAS — REFERENCIAS
+// ================================================================
+
+const orbitCanvas = document.getElementById('orbitCanvas');
+const ctxOrbit = orbitCanvas.getContext('2d');
+const chartCanvas = document.getElementById('chartCanvas');
+const ctxChart = chartCanvas.getContext('2d');
+const barCanvas = document.getElementById('barCanvas');
+const ctxBar = barCanvas.getContext('2d');
+
+// ================================================================
+//  RENDER — CANVAS 1: TIERRA + SATÉLITE
+// ================================================================
+
+function drawOrbit() {
+  const W = orbitCanvas.width, H = orbitCanvas.height;
+  ctxOrbit.clearRect(0, 0, W, H);
+  ctxOrbit.fillStyle = '#070b13'; ctxOrbit.fillRect(0, 0, W, H);
+
+  const cx = W / 2, cy = H / 2;
+  const pxPerRe = 30;                 // 30 px por radio terrestre (escala visual)
+  const earthR  = pxPerRe;            // radio de la Tierra en px
+  const orbitPx = pxPerRe * (r / Re); // radio orbital en px
+  const nullPx  = pxPerRe * (R_NULL / Re);
+
+  // Círculo de cancelación (referencia naranja punteada)
+  ctxOrbit.strokeStyle = '#e3b34155'; ctxOrbit.lineWidth = 1; ctxOrbit.setLineDash([3, 4]);
+  ctxOrbit.beginPath(); ctxOrbit.arc(cx, cy, nullPx, 0, 2 * Math.PI); ctxOrbit.stroke();
+  ctxOrbit.setLineDash([]);
+  ctxOrbit.fillStyle = '#e3b34199'; ctxOrbit.font = '9px JetBrains Mono, monospace';
+  ctxOrbit.textAlign = 'left';
+  ctxOrbit.fillText('cancelación (1.5 R⊕)', cx + nullPx + 4, cy - 3);
+
+  // Órbita actual (cian punteada)
+  ctxOrbit.strokeStyle = '#58a6ff55'; ctxOrbit.lineWidth = 1.2; ctxOrbit.setLineDash([5, 5]);
+  ctxOrbit.beginPath(); ctxOrbit.arc(cx, cy, orbitPx, 0, 2 * Math.PI); ctxOrbit.stroke();
+  ctxOrbit.setLineDash([]);
+
+  // Tierra (gradiente radial)
+  const gEarth = ctxOrbit.createRadialGradient(cx - earthR * 0.3, cy - earthR * 0.3, earthR * 0.2, cx, cy, earthR);
+  gEarth.addColorStop(0, '#3f7fd0');
+  gEarth.addColorStop(1, '#0d2748');
+  ctxOrbit.beginPath(); ctxOrbit.arc(cx, cy, earthR, 0, 2 * Math.PI);
+  ctxOrbit.fillStyle = gEarth; ctxOrbit.fill();
+  ctxOrbit.strokeStyle = '#5aa0ff'; ctxOrbit.lineWidth = 1.2; ctxOrbit.stroke();
+
+  // Satélite
+  const sx = cx + orbitPx * Math.cos(satAngle);
+  const sy = cy + orbitPx * Math.sin(satAngle);
+
+  // Línea de visión Tierra → satélite
+  ctxOrbit.strokeStyle = '#1f3a5f'; ctxOrbit.lineWidth = 1;
+  ctxOrbit.beginPath(); ctxOrbit.moveTo(cx, cy); ctxOrbit.lineTo(sx, sy); ctxOrbit.stroke();
+
+  // Color del satélite según el signo del neto (verde adelanta, rojo atrasa)
+  const netDayUs = rateNet(r) * SECONDS_PER_DAY * 1e6;
+  const satColor = netDayUs > 1 ? '#3fb950' : (netDayUs < -1 ? '#f85149' : '#e3b341');
+  const gSat = ctxOrbit.createRadialGradient(sx - 2, sy - 2, 0.5, sx, sy, 7);
+  gSat.addColorStop(0, '#ffffff');
+  gSat.addColorStop(1, satColor);
+  ctxOrbit.beginPath(); ctxOrbit.arc(sx, sy, 6, 0, 2 * Math.PI);
+  ctxOrbit.fillStyle = gSat; ctxOrbit.fill();
+  ctxOrbit.strokeStyle = satColor; ctxOrbit.lineWidth = 1.5; ctxOrbit.stroke();
+
+  // Etiqueta de altitud en el overlay
+  const altKm = (r - Re) / 1000;
+  document.getElementById('orbit-overlay').innerHTML =
+    `altitud = ${altKm.toLocaleString('es', { maximumFractionDigits: 0 })} km` +
+    `<br>r = ${(r / Re).toFixed(2)} R⊕  |  v = ${(vOrbit(r) / 1000).toFixed(2)} km/s`;
+}
+
+// ================================================================
+//  RENDER — CANVAS 2: DESFASE ACUMULADO vs TIEMPO
+// ================================================================
+
+function drawChart() {
+  const W = chartCanvas.width, H = chartCanvas.height;
+  ctxChart.clearRect(0, 0, W, H);
+  ctxChart.fillStyle = '#090d16'; ctxChart.fillRect(0, 0, W, H);
+
+  const pad = { t: 18, b: 26, l: 52, r: 14 };
+  const n = chartBuf.length;
+  if (n < 2) return;
+
+  const tMax = chartBuf[n - 1].tDays || 1;
+
+  // Rango vertical: cubre las tres series y el cero
+  let yMin = 0, yMax = 0;
+  chartBuf.forEach(p => {
+    yMin = Math.min(yMin, p.srUs, p.grUs, p.netUs);
+    yMax = Math.max(yMax, p.srUs, p.grUs, p.netUs);
+  });
+  const margin = Math.max(0.01, (yMax - yMin) * 0.12);
+  yMin -= margin; yMax += margin;
+  const yRange = (yMax - yMin) || 1;
+
+  const toX = tv => pad.l + (tv / tMax) * (W - pad.l - pad.r);
+  const toY = yv => pad.t + (1 - (yv - yMin) / yRange) * (H - pad.t - pad.b);
+
+  // Línea de referencia en 0 (naranja punteada)
+  ctxChart.strokeStyle = '#e3b341aa'; ctxChart.lineWidth = 1.2; ctxChart.setLineDash([4, 4]);
+  ctxChart.beginPath(); ctxChart.moveTo(pad.l, toY(0)); ctxChart.lineTo(W - pad.r, toY(0)); ctxChart.stroke();
+  ctxChart.setLineDash([]);
+
+  // Etiquetas de ejes
+  ctxChart.fillStyle = '#3b4d66'; ctxChart.font = '9px JetBrains Mono, monospace';
+  ctxChart.textAlign = 'right';
+  ctxChart.fillText(yMax.toFixed(1), pad.l - 4, pad.t + 8);
+  ctxChart.fillText('0', pad.l - 4, toY(0) + 3);
+  ctxChart.fillText(yMin.toFixed(1), pad.l - 4, H - pad.b);
+  ctxChart.textAlign = 'left'; ctxChart.fillText('t (días)', W - pad.r - 48, H - 6);
+  ctxChart.save(); ctxChart.translate(13, H / 2); ctxChart.rotate(-Math.PI / 2);
+  ctxChart.textAlign = 'center'; ctxChart.fillText('Δτ (μs)', 0, 0); ctxChart.restore();
+
+  // Traza una serie
+  function plot(key, color) {
+    ctxChart.strokeStyle = color; ctxChart.lineWidth = 1.6; ctxChart.lineCap = 'round';
+    ctxChart.beginPath();
+    chartBuf.forEach((p, i) => {
+      const x = toX(p.tDays), y = toY(p[key]);
+      i === 0 ? ctxChart.moveTo(x, y) : ctxChart.lineTo(x, y);
+    });
+    ctxChart.stroke();
+  }
+  plot('srUs',  '#f85149');  // RE — rojo
+  plot('grUs',  '#3fb950');  // RG — verde
+  plot('netUs', '#58a6ff');  // neto — cian
+}
+
+// ================================================================
+//  RENDER — BARRA DE DESCOMPOSICIÓN (RG arriba, RE abajo)
+// ================================================================
+
+function drawBar() {
+  const W = barCanvas.width, H = barCanvas.height;
+  ctxBar.clearRect(0, 0, W, H);
+  ctxBar.fillStyle = '#0a0e16'; ctxBar.fillRect(0, 0, W, H);
+
+  const mid = H / 2;
+  const re  = rateSR(r) * SECONDS_PER_DAY * 1e6;   // μs/día (negativo)
+  const gr  = rateGR(r) * SECONDS_PER_DAY * 1e6;   // μs/día (positivo)
+  const net = re + gr;
+
+  // Escala fija basada en el máximo del rango (órbita alta ≈ +50 μs/día)
+  const scale = (mid - 14) / 55;
+
+  // Línea cero
+  ctxBar.strokeStyle = '#263347'; ctxBar.lineWidth = 1;
+  ctxBar.beginPath(); ctxBar.moveTo(10, mid); ctxBar.lineTo(W - 10, mid); ctxBar.stroke();
+
+  const barW = 46;
+  const xRG = W * 0.30, xRE = W * 0.55, xNet = W * 0.80;
+
+  // RG (verde, hacia arriba)
+  ctxBar.fillStyle = '#3fb95099';
+  ctxBar.fillRect(xRG - barW / 2, mid - gr * scale, barW, gr * scale);
+  // RE (rojo, hacia abajo — re es negativo, así que -re*scale va hacia abajo)
+  ctxBar.fillStyle = '#f8514999';
+  ctxBar.fillRect(xRE - barW / 2, mid, barW, -re * scale);
+  // Neto (cian, arriba o abajo según signo)
+  ctxBar.fillStyle = '#58a6ffcc';
+  ctxBar.fillRect(xNet - barW / 2, mid - Math.max(0, net * scale), barW, Math.abs(net * scale));
+
+  // Etiquetas
+  ctxBar.fillStyle = '#8b98a8'; ctxBar.font = '9px JetBrains Mono, monospace'; ctxBar.textAlign = 'center';
+  ctxBar.fillText('RG', xRG, H - 4);
+  ctxBar.fillText('RE', xRE, H - 4);
+  ctxBar.fillText('neto', xNet, H - 4);
+}
+
+// ================================================================
+//  LECTURAS NUMÉRICAS Y BADGE DE ESTADO
+// ================================================================
+
+function fmtTau(seconds) {
+  const a = Math.abs(seconds);
+  if (a < 1e-6) return (seconds * 1e9).toFixed(2) + ' ns';
+  if (a < 1e-3) return (seconds * 1e6).toFixed(3) + ' μs';
+  return (seconds * 1e3).toFixed(3) + ' ms';
+}
+
+function fmtDist(meters) {
+  const a = Math.abs(meters);
+  if (a < 1000) return meters.toFixed(2) + ' m';
+  return (meters / 1000).toFixed(3) + ' km';
+}
+
+function updateDisplays() {
+  const reDay  = rateSR(r) * SECONDS_PER_DAY * 1e6;   // μs/día
+  const grDay  = rateGR(r) * SECONDS_PER_DAY * 1e6;
+  const netDay = reDay + grDay;
+
+  // Descomposición
+  document.getElementById('dc-re').textContent  = reDay.toFixed(2)  + ' μs/día';
+  document.getElementById('dc-gr').textContent  = '+' + grDay.toFixed(2) + ' μs/día';
+  document.getElementById('dc-net').textContent = (netDay >= 0 ? '+' : '') + netDay.toFixed(2) + ' μs/día';
+
+  // Lecturas grandes acumuladas
+  const rdDtau = document.getElementById('rd-dtau');
+  rdDtau.textContent = fmtTau(dTau);
+  rdDtau.className = 'readout-val ' + (dTau > 0 ? 'pos' : (dTau < 0 ? 'neg' : ''));
+  document.getElementById('rd-dtau-sub').textContent =
+    'tasa neta: ' + (netDay >= 0 ? '+' : '') + netDay.toFixed(2) + ' μs/día';
+
+  const posErr = c * dTau;
+  const rdPos = document.getElementById('rd-poserr');
+  rdPos.textContent = fmtDist(posErr);
+  rdPos.className = 'readout-val ' + (dTau > 0 ? 'pos' : (dTau < 0 ? 'neg' : ''));
+
+  document.getElementById('rd-time').textContent =
+    'tiempo físico transcurrido: ' + (simTime / SECONDS_PER_DAY).toFixed(2) + ' días';
+
+  // Badge de estado según el signo del neto
+  const badge = document.getElementById('regime-badge');
+  if (netDay > 1) {
+    badge.textContent = '▲ El reloj del satélite ADELANTA';
+    badge.className = 'badge stable';
+  } else if (netDay < -1) {
+    badge.textContent = '▼ El reloj del satélite ATRASA';
+    badge.className = 'badge unstable';
+  } else {
+    badge.textContent = '≈ Altura de cancelación (neto ≈ 0)';
+    badge.className = 'badge boundary';
+  }
+}
+
+// ================================================================
+//  BUCLE DE ANIMACIÓN
+// ================================================================
+
+function step(ts) {
+  if (!running) return;
+
+  // Tiempo real de pared entre cuadros (s), acotado para evitar saltos
+  if (lastTs === null) lastTs = ts;
+  let dtWall = (ts - lastTs) / 1000;
+  lastTs = ts;
+  if (dtWall > 0.05) dtWall = 0.05;
+
+  // Tiempo físico integrado en este cuadro
+  const dtReal = dtWall * accelHours * 3600;
+  simTime += dtReal;
+
+  // Integración del desfase (cada componente por separado)
+  dTauSR += rateSR(r) * dtReal;
+  dTauGR += rateGR(r) * dtReal;
+  dTau    = dTauSR + dTauGR;
+
+  // Avance visual del satélite (velocidad angular decorativa: órbitas bajas más rápidas)
+  satAngle += dtWall * 0.6 * Math.pow(R_GPS / r, 1.5);
+
+  // Registro para la gráfica
+  chartBuf.push({
+    tDays: simTime / SECONDS_PER_DAY,
+    srUs:  dTauSR * 1e6,
+    grUs:  dTauGR * 1e6,
+    netUs: dTau   * 1e6,
+  });
+  if (chartBuf.length > MAX_PTS) chartBuf.shift();
+
+  drawOrbit();
+  drawChart();
+  drawBar();
+  updateDisplays();
+
+  animId = requestAnimationFrame(step);
+}
+
+// ================================================================
+//  RESET Y PRESETS
+// ================================================================
+
+/** Reinicia solo los acumuladores (mantiene r y la aceleración). */
+function resetAccumulators() {
+  simTime = 0;
+  dTauSR = dTauGR = dTau = 0;
+  chartBuf.length = 0;
+  lastTs = null;
+}
+
+function resetSim() {
+  resetAccumulators();
+  drawOrbit(); drawChart(); drawBar(); updateDisplays();
+}
+
+const PRESETS = {
+  gps:  R_GPS,        // órbita GPS
+  leo:  Re + 400e3,   // LEO ~400 km
+  null: R_NULL,       // altura de cancelación
+};
+
+function setPreset(name) {
+  r = PRESETS[name];
+  document.getElementById('sl-alt').value = sliderFromRadius(r);
+  updateAltLabel();
+  resetSim();
+}
+
+// ================================================================
+//  SLIDERS — WIRING
+// ================================================================
+
+function updateAltLabel() {
+  const altKm = (r - Re) / 1000;
+  document.getElementById('val-alt').textContent =
+    altKm.toLocaleString('es', { maximumFractionDigits: 0 }) + ' km';
+}
+
+function setupSliders() {
+  // Altitud → radio orbital: cambia las tasas y reinicia el desfase para
+  // que la gráfica refleje la pendiente correcta del nuevo radio.
+  document.getElementById('sl-alt').addEventListener('input', function() {
+    r = radiusFromSlider(parseInt(this.value, 10));
+    updateAltLabel();
+    resetSim();
+  });
+
+  // Aceleración temporal: solo cambia el ritmo de integración, no reinicia.
+  document.getElementById('sl-accel').addEventListener('input', function() {
+    accelHours = parseInt(this.value, 10);
+    document.getElementById('val-accel').textContent = accelHours + ' h';
+  });
+
+  // Posición inicial del slider de altitud (preset GPS)
+  document.getElementById('sl-alt').value = sliderFromRadius(r);
+  updateAltLabel();
+}
+
+// ================================================================
+//  CONTROLES GENERALES
+// ================================================================
+
+function togglePlay() {
+  running = !running;
+  const btn = document.getElementById('btn-play');
+  if (running) {
+    btn.textContent = '⏸ Pausar';
+    btn.className = 'primary';
+    lastTs = null;
+    animId = requestAnimationFrame(step);
+  } else {
+    btn.textContent = '▶ Reanudar';
+    btn.className = '';
+    cancelAnimationFrame(animId);
+  }
+}
+
+// ================================================================
+//  CÓDIGO FUENTE TOGGLE
+// ================================================================
+
+let codeLoaded = false;
+
+function toggleCode() {
+  const container = document.getElementById('code-container');
+  const label = document.getElementById('code-btn-label');
+  const isOpen = container.classList.toggle('open');
+  label.textContent = isOpen ? 'Ocultar código fuente' : 'Ver código fuente comentado';
+  if (isOpen && !codeLoaded) {
+    document.getElementById('code-display').textContent = document.documentElement.outerHTML;
+    codeLoaded = true;
+  }
+}
+
+// ================================================================
+//  INICIALIZACIÓN
+// ================================================================
+
+setupSliders();
+resetSim();
+requestAnimationFrame(step);
+
+</script>
+</body>
+</html>
